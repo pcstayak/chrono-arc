@@ -46,7 +46,6 @@ interface SegmentPosition {
 export default function TimelineArc({
   events,
   segments,
-  currentSegmentId,
   selectedEventId,
   onEventHover,
   onEventSelect,
@@ -146,8 +145,6 @@ export default function TimelineArc({
     if (segments.length === 0) return [];
 
     const positions: SegmentPosition[] = [];
-    const padding = 50;
-    const usableWidth = dimensions.width - 2 * padding;
 
     // Find year range
     const minYear = Math.min(...segments.map((s) => s.startYear));
@@ -260,73 +257,103 @@ export default function TimelineArc({
   };
 
   /**
-   * Epic 5 Story 5.4: Render segment with color stacking
+   * Generate path along the Bezier curve from t1 to t2
+   */
+  const getArcSegmentPath = useCallback((t1: number, t2: number, numSteps: number = 50): string => {
+    const points: string[] = [];
+
+    for (let i = 0; i <= numSteps; i++) {
+      const t = t1 + (t2 - t1) * (i / numSteps);
+      const point = getBezierPoint(t);
+
+      if (i === 0) {
+        points.push(`M ${point.x} ${point.y}`);
+      } else {
+        points.push(`L ${point.x} ${point.y}`);
+      }
+    }
+
+    return points.join(' ');
+  }, [getBezierPoint]);
+
+  /**
+   * Epic 5 Story 5.4: Render segment with color stacking along the arc curve
    */
   const renderSegment = (segPos: SegmentPosition) => {
-    const { segment, startX, endX, stateCounts } = segPos;
+    const { segment, stateCounts } = segPos;
     const isHovered = hoveredSegmentId === segment.id;
-    const segmentWidth = endX - startX;
+    const segments: React.JSX.Element[] = [];
+    const strokeWidth = dimensions.width < 768 ? 8 : 10;
+
+    // Find year range for positioning
+    const minYear = Math.min(...segmentPositions.map((s) => s.segment.startYear));
+    const maxYear = Math.max(...segmentPositions.map((s) => s.segment.endYear));
+    const yearRange = maxYear - minYear;
+
+    const startT = (segment.startYear - minYear) / yearRange;
+    const endT = (segment.endYear - minYear) / yearRange;
+    const tRange = endT - startT;
 
     // Calculate proportions for color stacking
     const total = stateCounts.total || 1;
-    const safeWidth = (stateCounts.safe / total) * segmentWidth;
-    const threatenedWidth = (stateCounts.threatened / total) * segmentWidth;
-    const attackedWidth = (stateCounts.attacked / total) * segmentWidth;
+    const safeProportion = stateCounts.safe / total;
+    const threatenedProportion = stateCounts.threatened / total;
+    const attackedProportion = stateCounts.attacked / total;
 
     // Colors ordered: safe > threatened > attacked
-    let currentX = startX;
-    const segments: React.JSX.Element[] = [];
-    const strokeWidth = dimensions.width < 768 ? 8 : 10;
-    const y = getBezierPoint((segment.startYear + segment.endYear) / 2 / 5500 + 0.5).y;
+    let currentT = startT;
 
     // Safe section (blue)
     if (stateCounts.safe > 0) {
+      const sectionEndT = currentT + tRange * safeProportion;
+      const path = getArcSegmentPath(currentT, sectionEndT);
+
       segments.push(
-        <line
+        <path
           key={`${segment.id}-safe`}
-          x1={currentX}
-          y1={y}
-          x2={currentX + safeWidth}
-          y2={y}
+          d={path}
           stroke={isHovered ? "#f97316" : "#4A90E2"}
           strokeWidth={strokeWidth}
           strokeLinecap="round"
+          fill="none"
           className="transition-colors duration-200"
         />
       );
-      currentX += safeWidth;
+      currentT = sectionEndT;
     }
 
     // Threatened section (orange)
     if (stateCounts.threatened > 0) {
+      const sectionEndT = currentT + tRange * threatenedProportion;
+      const path = getArcSegmentPath(currentT, sectionEndT);
+
       segments.push(
-        <line
+        <path
           key={`${segment.id}-threatened`}
-          x1={currentX}
-          y1={y}
-          x2={currentX + threatenedWidth}
-          y2={y}
+          d={path}
           stroke={isHovered ? "#f97316" : "#F5A623"}
           strokeWidth={strokeWidth}
           strokeLinecap="round"
+          fill="none"
           className="transition-colors duration-200"
         />
       );
-      currentX += threatenedWidth;
+      currentT = sectionEndT;
     }
 
     // Attacked section (red)
     if (stateCounts.attacked > 0) {
+      const sectionEndT = currentT + tRange * attackedProportion;
+      const path = getArcSegmentPath(currentT, sectionEndT);
+
       segments.push(
-        <line
+        <path
           key={`${segment.id}-attacked`}
-          x1={currentX}
-          y1={y}
-          x2={currentX + attackedWidth}
-          y2={y}
+          d={path}
           stroke={isHovered ? "#f97316" : "#D0021B"}
           strokeWidth={strokeWidth}
           strokeLinecap="round"
+          fill="none"
           className="transition-colors duration-200"
         />
       );
@@ -334,16 +361,16 @@ export default function TimelineArc({
 
     // If no events, show neutral gray
     if (stateCounts.total === 0) {
+      const path = getArcSegmentPath(startT, endT);
+
       segments.push(
-        <line
+        <path
           key={`${segment.id}-empty`}
-          x1={startX}
-          y1={y}
-          x2={endX}
-          y2={y}
+          d={path}
           stroke={isHovered ? "#f97316" : "#9ca3af"}
           strokeWidth={strokeWidth}
           strokeLinecap="round"
+          fill="none"
           className="transition-colors duration-200"
         />
       );
