@@ -16,9 +16,10 @@ interface GamePageProps {
 }
 
 export default function GamePage({ params }: GamePageProps) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { sessionId } = use(params);
 
-  // TODO: Load session data, events, players from DAL
+  // TODO: Load session data, events, players from DAL using sessionId
   // For now, this is a placeholder layout
 
   return (

@@ -5,7 +5,6 @@
 
 import { getDbClient, executeQuery, parseTimestamp, type Result } from "./base";
 import type { SessionEvent, EventState, PlaceEventData } from "@/types";
-import { getEventById } from "./events";
 
 /**
  * Get all events for a session
@@ -183,6 +182,7 @@ export async function incrementAttackCount(
 /**
  * Map database session event to domain session event
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapDbSessionEventToSessionEvent(dbSessionEvent: any): SessionEvent {
   return {
     id: dbSessionEvent.id,
