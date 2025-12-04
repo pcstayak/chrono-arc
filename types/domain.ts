@@ -52,7 +52,57 @@ export interface EventContent {
   relatedEventIds?: string[];
   miniGameData?: MiniGameData;
   defenseQuestions?: DefenseQuestion[];
+  // Epic 3: Trigger system content
+  triggers?: TriggerContent;
 }
+
+/**
+ * Epic 3: Trigger content for the right panel
+ */
+export interface TriggerContent {
+  story?: StoryTrigger;
+  game?: GameTrigger;
+  related?: RelatedTrigger;
+}
+
+/**
+ * Story trigger content - extended text and images
+ */
+export interface StoryTrigger {
+  content: string; // 2-4 paragraphs of extended text
+  images?: string[]; // URLs to images
+}
+
+/**
+ * Game trigger content - placeholder for mini-games
+ */
+export interface GameTrigger {
+  placeholder: string; // Message to display
+  previewDescription?: string; // Optional description of future game
+}
+
+/**
+ * Related items trigger - list of related events
+ */
+export interface RelatedTrigger {
+  items: RelatedItem[];
+}
+
+/**
+ * Related event item
+ */
+export interface RelatedItem {
+  id: string;
+  name: string;
+  description: string;
+  thumbnail?: string;
+  year?: number;
+}
+
+/**
+ * Trigger type identifiers
+ */
+export type TriggerType = "story" | "game" | "related";
 
 /**
  * Mini-game configuration for an event

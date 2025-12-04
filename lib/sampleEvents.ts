@@ -31,6 +31,32 @@ export const sampleEvents: TimelineEvent[] = [
         "Early wheels were made from solid wood",
         "It took 300 years before someone thought to put wheels on chariots!"
       ],
+      triggers: {
+        story: {
+          content: "Imagine living in a world without wheels. Every heavy object had to be dragged, pushed, or carried. Moving stones to build a temple? Exhausting! Transporting grain from the farm to the city? A huge challenge!\n\nAround 3500 BCE, in ancient Mesopotamia (the land between the Tigris and Euphrates rivers, now Iraq), someone made a breakthrough. They took a thick slice of a tree trunk and realized it could roll. At first, these wheels were solid and heavy, but they worked!\n\nThe wheel didn't just help with transportation. Ancient potters used wheels to spin clay and create perfectly round pots. Farmers used water wheels to irrigate their crops. The wheel was everywhere, making life easier in so many ways.\n\nInterestingly, some ancient civilizations never invented the wheel. The Incas in South America built amazing roads and cities without it, using llamas and human power instead. This shows that different societies can solve problems in different ways!",
+          images: ["/images/ancient-wheel.jpg"]
+        },
+        game: {
+          placeholder: "Mini-game coming soon!",
+          previewDescription: "You'll design your own simple machine using wheels, axles, and ramps to move a heavy stone block."
+        },
+        related: {
+          items: [
+            {
+              id: "evt-002",
+              name: "The Great Pyramid",
+              description: "Built before the wheel was widely used in Egypt - workers moved massive stones using logs and ramps!",
+              year: -2560
+            },
+            {
+              id: "evt-006",
+              name: "The Steam Engine",
+              description: "Wheels powered by steam revolutionized transportation thousands of years later.",
+              year: 1776
+            }
+          ]
+        }
+      }
     },
     createdAt: new Date(),
   },
@@ -50,6 +76,32 @@ export const sampleEvents: TimelineEvent[] = [
         "Each block weighs about 2.5 tons on average",
         "It was originally covered in smooth white limestone that sparkled in the sun"
       ],
+      triggers: {
+        story: {
+          content: "Picture this: you're a worker in ancient Egypt, around 2560 BCE. Pharaoh Khufu wants the biggest, most impressive tomb ever built. Your job? Help build a pyramid so tall that it will remain the world's tallest building for the next 3,800 years!\n\nThe Great Pyramid wasn't built by slaves, as many people think. Recent evidence shows it was built by skilled workers who were paid for their labor. Tens of thousands of workers hauled massive limestone blocks from nearby quarries. Without wheels (they weren't common in Egypt yet), they used wooden sledges, ropes, and probably water to reduce friction.\n\nThe pyramid originally stood 481 feet tall and was covered in polished white limestone that reflected the sun's light. Ancient visitors said it was blindingly bright! Inside, narrow passages lead to chambers where the pharaoh was buried with treasures for the afterlife.\n\nWhat's most amazing is how precise it is. The base is almost perfectly level, and the sides align with the cardinal directions (north, south, east, west) with incredible accuracy. Even with modern technology, matching this precision would be challenging!",
+          images: ["/images/great-pyramid.jpg"]
+        },
+        game: {
+          placeholder: "Mini-game coming soon!",
+          previewDescription: "You'll engineer a system to move heavy pyramid blocks using ramps, levers, and teamwork."
+        },
+        related: {
+          items: [
+            {
+              id: "evt-001",
+              name: "The Wheel",
+              description: "Invented around the same time, but not used in pyramid construction!",
+              year: -3500
+            },
+            {
+              id: "evt-004",
+              name: "The Printing Press",
+              description: "Another invention that required precise engineering and changed the world.",
+              year: 1440
+            }
+          ]
+        }
+      }
     },
     createdAt: new Date(),
   },
@@ -69,6 +121,32 @@ export const sampleEvents: TimelineEvent[] = [
         "It was used for fireworks before weapons",
         "Gunpowder is made from saltpeter, charcoal, and sulfur"
       ],
+      triggers: {
+        story: {
+          content: "In ancient China, around 850 CE, alchemists were mixing different substances, trying to find the secret to eternal life. They mixed saltpeter (potassium nitrate), charcoal, and sulfur together. When they heated this mixture, BOOM! They definitely didn't find immortality, but they found something that would change the world.\n\nAt first, the Chinese used gunpowder for fun - creating beautiful fireworks for festivals and celebrations. Imagine the first time someone saw an explosion of colored sparks light up the night sky! It must have seemed like magic.\n\nBut soon, people realized gunpowder could be used in warfare. The Chinese invented fire arrows, early grenades, and even primitive guns. When the Mongols learned about gunpowder, they spread the knowledge across Asia and into Europe.\n\nBy the 1300s, European armies were using cannons and guns. Castles that had stood for centuries could now be broken down by cannonballs. The age of knights in armor was ending, and gunpowder was changing how wars were fought. One accidental discovery by alchemists seeking immortality ended up changing human history forever!",
+          images: ["/images/gunpowder-fireworks.jpg"]
+        },
+        game: {
+          placeholder: "Mini-game coming soon!",
+          previewDescription: "Mix the correct proportions of ingredients to create a safe firework display."
+        },
+        related: {
+          items: [
+            {
+              id: "evt-004",
+              name: "The Printing Press",
+              description: "Another invention that spread knowledge and changed warfare through better communication.",
+              year: 1440
+            },
+            {
+              id: "evt-006",
+              name: "The Steam Engine",
+              description: "Like gunpowder, steam power revolutionized both industry and warfare.",
+              year: 1776
+            }
+          ]
+        }
+      }
     },
     createdAt: new Date(),
   },
@@ -88,6 +166,32 @@ export const sampleEvents: TimelineEvent[] = [
         "It could print about 3,600 pages per day",
         "Before this, a single book could take months to copy by hand"
       ],
+      triggers: {
+        story: {
+          content: "Imagine wanting to read a book in the 1400s. You'd have to go to a monastery where monks spent their entire lives copying books by hand, one letter at a time. A single book could cost as much as a farm! Only the very rich could afford personal libraries.\n\nJohannes Gutenberg, a German goldsmith, changed everything. He created movable metal type - individual letters that could be arranged, inked, and pressed onto paper. After printing one page, you could rearrange the letters to print another. His first major project was printing 180 copies of the Bible.\n\nThe impact was incredible. Suddenly, books became affordable. Ideas spread faster than ever before. Scientists could share discoveries with other scientists across Europe. Martin Luther used printing to spread his religious ideas, starting the Protestant Reformation. Universities grew because students could own textbooks.\n\nWithin 50 years of Gutenberg's invention, there were printing presses in over 200 European cities, producing millions of books. This was the beginning of the Information Age - not the digital one we live in now, but the original explosion of shared knowledge that helped create the modern world!",
+          images: ["/images/printing-press.jpg"]
+        },
+        game: {
+          placeholder: "Mini-game coming soon!",
+          previewDescription: "Arrange movable type to print a page, racing against the clock!"
+        },
+        related: {
+          items: [
+            {
+              id: "evt-003",
+              name: "Gunpowder",
+              description: "Both inventions spread from Asia to Europe and changed society dramatically.",
+              year: 850
+            },
+            {
+              id: "evt-009",
+              name: "The Internet",
+              description: "The printing press was the first information revolution; the internet was the second.",
+              year: 1969
+            }
+          ]
+        }
+      }
     },
     createdAt: new Date(),
   },
@@ -107,6 +211,32 @@ export const sampleEvents: TimelineEvent[] = [
         "He discovered four of Jupiter's moons",
         "The Catholic Church didn't like his findings and put him under house arrest"
       ],
+      triggers: {
+        story: {
+          content: "In 1609, Galileo Galilei heard about a Dutch invention - a tube with lenses that made distant objects look closer. As a scientist and inventor, he was fascinated. Within months, he had built his own telescope that was much more powerful.\n\nWhen Galileo pointed his telescope at the night sky, he made discoveries that shocked the world. He saw mountains on the Moon - people thought it was a perfect, smooth sphere! He discovered four moons orbiting Jupiter, proving that not everything orbited Earth. He saw that Venus had phases like our Moon, which supported the idea that planets orbit the Sun.\n\nThese discoveries challenged the beliefs of his time. The Catholic Church taught that Earth was the center of the universe, with everything revolving around it. Galileo's observations supported Copernicus's idea that Earth and other planets orbit the Sun. For teaching this, Galileo was put on trial and spent the rest of his life under house arrest.\n\nBut Galileo was right, and his telescope opened a new window to understanding our place in the universe. Today, powerful telescopes like Hubble continue his work, revealing distant galaxies and expanding our knowledge of the cosmos.",
+          images: ["/images/galileo-telescope.jpg"]
+        },
+        game: {
+          placeholder: "Mini-game coming soon!",
+          previewDescription: "Use a telescope to discover Jupiter's moons and track their movement over several nights."
+        },
+        related: {
+          items: [
+            {
+              id: "evt-004",
+              name: "The Printing Press",
+              description: "Helped spread Galileo's ideas despite attempts to suppress them.",
+              year: 1440
+            },
+            {
+              id: "evt-009",
+              name: "The Internet",
+              description: "Like the telescope, it expanded our ability to see and understand the world.",
+              year: 1969
+            }
+          ]
+        }
+      }
     },
     createdAt: new Date(),
   },
@@ -126,6 +256,32 @@ export const sampleEvents: TimelineEvent[] = [
         "Watt's name lives on in the 'watt' unit of power",
         "Steam trains could travel up to 30 mph - incredibly fast for the time!"
       ],
+      triggers: {
+        story: {
+          content: "Before steam engines, people relied on muscle power (human and animal), water wheels, and windmills. These power sources had limits - horses got tired, rivers sometimes dried up, and the wind didn't always blow.\n\nJames Watt, a Scottish inventor, dramatically improved the steam engine in 1776. His engine was much more efficient than earlier versions, wasting less fuel. This made it practical to use steam power in factories, mines, and eventually for transportation.\n\nThe impact was revolutionary. Factories could be built anywhere, not just near rivers for water power. Trains powered by steam could carry goods and people across countries at speeds never imagined. Ships no longer depended on wind and could cross oceans on schedules. Cities grew as people moved from farms to work in factories.\n\nThe Industrial Revolution changed where people lived, how they worked, and what they could make. It also had downsides - pollution, difficult working conditions, and child labor. But it marked the beginning of the modern industrial world we live in today.",
+          images: ["/images/steam-engine.jpg"]
+        },
+        game: {
+          placeholder: "Mini-game coming soon!",
+          previewDescription: "Manage steam pressure and fuel to power a factory or locomotive efficiently."
+        },
+        related: {
+          items: [
+            {
+              id: "evt-001",
+              name: "The Wheel",
+              description: "Steam engines made wheels move faster than ever before with trains and steamships.",
+              year: -3500
+            },
+            {
+              id: "evt-007",
+              name: "The Light Bulb",
+              description: "Electricity would eventually replace steam as the primary power source.",
+              year: 1879
+            }
+          ]
+        }
+      }
     },
     createdAt: new Date(),
   },
@@ -145,6 +301,32 @@ export const sampleEvents: TimelineEvent[] = [
         "The first successful bulb lasted 13.5 hours",
         "Edison's team also invented the power grid to distribute electricity"
       ],
+      triggers: {
+        story: {
+          content: "For thousands of years, people lived by the rhythm of the sun. When it got dark, you lit a candle, an oil lamp, or a gas light. These were dim, smoky, and sometimes dangerous. Imagine trying to read or do homework by candlelight!\n\nThomas Edison wasn't the first person to create an electric light, but he was the first to make one that was practical and affordable. He tested thousands of materials for the filament (the part that glows), finally finding that carbonized bamboo worked best. His bulb could last for hundreds of hours.\n\nBut Edison didn't stop there. He realized that just inventing a light bulb wasn't enough - people needed electricity in their homes! So his team invented the entire electrical power system: generators, wires, switches, and meters. In 1882, he opened the first power plant in New York City, bringing electricity to 85 buildings.\n\nElectric lights transformed society. Factories could operate at night. People could read and study after dark. Cities became safer and more active after sunset. Today we take electric lights for granted, flipping a switch without thinking about how revolutionary this simple act once was!",
+          images: ["/images/edison-lightbulb.jpg"]
+        },
+        game: {
+          placeholder: "Mini-game coming soon!",
+          previewDescription: "Experiment with different filament materials to create a long-lasting light bulb."
+        },
+        related: {
+          items: [
+            {
+              id: "evt-006",
+              name: "The Steam Engine",
+              description: "Early power plants used steam engines to generate electricity for light bulbs.",
+              year: 1776
+            },
+            {
+              id: "evt-010",
+              name: "The Smartphone",
+              description: "Modern devices like smartphones rely on electrical innovation that started with the light bulb.",
+              year: 2007
+            }
+          ]
+        }
+      }
     },
     createdAt: new Date(),
   },
@@ -164,6 +346,32 @@ export const sampleEvents: TimelineEvent[] = [
         "They made four flights that day, the longest lasting 59 seconds",
         "They had to invent their own lightweight engine"
       ],
+      triggers: {
+        story: {
+          content: "For centuries, humans dreamed of flying like birds. Many tried and failed, some dying in the attempt. What made Orville and Wilbur Wright different? They were patient, systematic, and scientific in their approach.\n\nThe Wright brothers owned a bicycle shop in Dayton, Ohio. They studied birds, built gliders, and tested wing designs in a wind tunnel they built themselves. They realized that controlling an aircraft was just as important as getting it off the ground. They invented a system to twist the wings slightly, allowing the pilot to steer.\n\nOn December 17, 1903, at Kitty Hawk, North Carolina, they were ready. Orville piloted the first flight, which lasted just 12 seconds and covered 120 feet. That's shorter than a jumbo jet! But it was controlled, powered flight - something never achieved before. They made three more flights that day, with Wilbur flying 852 feet in 59 seconds.\n\nJust 66 years later, humans landed on the Moon. The airplane revolutionized travel, warfare, and commerce. Today, millions of people fly every day, crossing continents in hours instead of weeks. All because two bicycle mechanics refused to believe that flight was impossible!",
+          images: ["/images/wright-brothers.jpg"]
+        },
+        game: {
+          placeholder: "Mini-game coming soon!",
+          previewDescription: "Design and test different wing shapes to achieve stable, controlled flight."
+        },
+        related: {
+          items: [
+            {
+              id: "evt-006",
+              name: "The Steam Engine",
+              description: "Transportation revolution part one; airplanes completed the revolution.",
+              year: 1776
+            },
+            {
+              id: "evt-009",
+              name: "The Internet",
+              description: "Computers guided by the internet now help fly modern aircraft.",
+              year: 1969
+            }
+          ]
+        }
+      }
     },
     createdAt: new Date(),
   },
@@ -183,6 +391,32 @@ export const sampleEvents: TimelineEvent[] = [
         "Only four computers were connected in the first network",
         "Today, there are over 5 billion internet users worldwide"
       ],
+      triggers: {
+        story: {
+          content: "In the 1960s, computers were huge machines that filled entire rooms. Each computer worked alone, unable to talk to other computers. Scientists wondered: what if we could connect computers so they could share information?\n\nThe U.S. Department of Defense funded a project called ARPANET to link research computers across the country. On October 29, 1969, a student tried to send the word 'LOGIN' from UCLA to Stanford. The system crashed after 'LO' - but those two letters were the first message ever sent over the internet!\n\nAt first, only universities and research centers used the internet. In 1989, Tim Berners-Lee invented the World Wide Web, making it easy for anyone to create and view web pages. In the 1990s, companies like America Online and Netscape brought the internet to homes.\n\nToday, the internet has transformed how we learn, communicate, shop, work, and play. You can video chat with someone on the other side of the world, access information on any topic instantly, and share ideas with millions of people. The internet connects over 5 billion people and is still growing, changing our world in ways the inventors never imagined!",
+          images: ["/images/early-internet.jpg"]
+        },
+        game: {
+          placeholder: "Mini-game coming soon!",
+          previewDescription: "Route data packets through a network, learning how information travels across the internet."
+        },
+        related: {
+          items: [
+            {
+              id: "evt-004",
+              name: "The Printing Press",
+              description: "The first information revolution; the internet is the second.",
+              year: 1440
+            },
+            {
+              id: "evt-010",
+              name: "The Smartphone",
+              description: "Put the power of the internet in everyone's pocket.",
+              year: 2007
+            }
+          ]
+        }
+      }
     },
     createdAt: new Date(),
   },
@@ -202,6 +436,32 @@ export const sampleEvents: TimelineEvent[] = [
         "It couldn't even record video at first",
         "Today's smartphones are more powerful than the computers used in the moon landing"
       ],
+      triggers: {
+        story: {
+          content: "Before 2007, phones were mainly for calling and texting. Sure, some phones could browse simple websites or take blurry photos, but they were clunky to use. Then Steve Jobs stood on stage and introduced the iPhone - and everything changed.\n\nThe iPhone combined a phone, an iPod music player, and an internet communicator into one sleek device with a touchscreen. No more tiny keyboards or styluses - you could control everything with your finger! Apps from the App Store let you do almost anything: play games, check the weather, navigate with maps, edit photos, and thousands of other tasks.\n\nOther companies soon created their own smartphones using Google's Android system. Competition made smartphones better and more affordable. Today, there are more smartphones on Earth than people! Billions of individuals in developing countries skipped desktop computers entirely and went straight to smartphones for their internet access.\n\nSmartphones have changed society in profound ways. We navigate with GPS, learn from educational apps, stay connected with friends worldwide, and document our lives with photos and videos. Your smartphone has more computing power than the computers NASA used to land astronauts on the Moon. You're carrying a revolution in your pocket!",
+          images: ["/images/smartphone-evolution.jpg"]
+        },
+        game: {
+          placeholder: "Mini-game coming soon!",
+          previewDescription: "Design your own app interface and see how many users you can reach!"
+        },
+        related: {
+          items: [
+            {
+              id: "evt-009",
+              name: "The Internet",
+              description: "Smartphones brought the internet to billions of people's pockets.",
+              year: 1969
+            },
+            {
+              id: "evt-007",
+              name: "The Light Bulb",
+              description: "Like Edison's power system, smartphones created an entire ecosystem of apps and services.",
+              year: 1879
+            }
+          ]
+        }
+      }
     },
     createdAt: new Date(),
   },

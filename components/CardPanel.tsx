@@ -2,20 +2,30 @@
  * Card Panel Component (Left Column)
  * Story 1.2 (BA-US-content-area-columns) - Card Panel portion
  * Epic 2: Updated to display event cards from timeline selection
+ * Epic 3: Enhanced with trigger buttons (Stories 3.1, 3.2)
  * Displays historical event cards (preview or selected)
+ * Shows trigger buttons on right edge for Story, Game, Related content
  * Responsive: 35-40% width on desktop, full width on mobile
  */
 
 "use client";
 
 import type { TimelineEvent } from "@/lib/sampleEvents";
+import type { TriggerType } from "@/types";
 
 interface CardPanelProps {
   event: TimelineEvent | null;
   isPreview?: boolean;
+  activeTrigger?: TriggerType | null;
+  onTriggerClick?: (trigger: TriggerType) => void;
 }
 
-export default function CardPanel({ event, isPreview = false }: CardPanelProps) {
+export default function CardPanel({
+  event,
+  isPreview = false,
+  activeTrigger = null,
+  onTriggerClick,
+}: CardPanelProps) {
   if (!event) {
     return (
       <aside className="w-full lg:w-[38%] lg:min-w-[300px] bg-gray-100 dark:bg-gray-800 p-4 md:p-6 overflow-y-auto border-b lg:border-b-0 lg:border-r border-gray-300 dark:border-gray-700">
@@ -48,11 +58,60 @@ export default function CardPanel({ event, isPreview = false }: CardPanelProps) 
     );
   }
 
+  // Determine which triggers are available
+  const hasStory = event?.content.triggers?.story !== undefined;
+  const hasGame = event?.content.triggers?.game !== undefined;
+  const hasRelated =
+    event?.content.triggers?.related !== undefined &&
+    event?.content.triggers?.related.items.length > 0;
+
+  const triggerButtons: Array<{
+    type: TriggerType;
+    label: string;
+    available: boolean;
+    colors: {
+      active: string;
+      inactive: string;
+      hover: string;
+    };
+  }> = [
+    {
+      type: "story",
+      label: "Story",
+      available: hasStory,
+      colors: {
+        active: "bg-purple-600 text-white",
+        inactive: "bg-white dark:bg-gray-800 text-purple-600 dark:text-purple-400 border-2 border-purple-600",
+        hover: "hover:bg-purple-50 dark:hover:bg-purple-950",
+      },
+    },
+    {
+      type: "game",
+      label: "Game",
+      available: hasGame,
+      colors: {
+        active: "bg-green-600 text-white",
+        inactive: "bg-white dark:bg-gray-800 text-green-600 dark:text-green-400 border-2 border-green-600",
+        hover: "hover:bg-green-50 dark:hover:bg-green-950",
+      },
+    },
+    {
+      type: "related",
+      label: "Related",
+      available: hasRelated,
+      colors: {
+        active: "bg-orange-600 text-white",
+        inactive: "bg-white dark:bg-gray-800 text-orange-600 dark:text-orange-400 border-2 border-orange-600",
+        hover: "hover:bg-orange-50 dark:hover:bg-orange-950",
+      },
+    },
+  ];
+
   return (
     <aside className="w-full lg:w-[38%] lg:min-w-[300px] bg-gray-100 dark:bg-gray-800 p-4 md:p-6 overflow-y-auto border-b lg:border-b-0 lg:border-r border-gray-300 dark:border-gray-700">
       {/* Event card */}
       <div
-        className={`bg-white dark:bg-gray-900 rounded-lg shadow-lg overflow-hidden transition-all duration-200 ${
+        className={`bg-white dark:bg-gray-900 rounded-lg shadow-lg overflow-hidden transition-all duration-200 relative ${
           isPreview ? "opacity-70 border-2 border-blue-300" : "border-2 border-blue-500"
         }`}
       >
@@ -77,14 +136,43 @@ export default function CardPanel({ event, isPreview = false }: CardPanelProps) 
         </div>
 
         {/* Event description */}
-        <div className="p-4 md:p-6">
-          <p className="text-gray-700 dark:text-gray-300 text-base md:text-lg leading-relaxed mb-4">
+        <div className="p-4 md:p-6 relative">
+          {/* Epic 3: Trigger buttons - positioned on right edge of body */}
+          {!isPreview && onTriggerClick && (
+            <div className="absolute top-2 right-2 md:right-3 flex flex-col gap-2 z-10">
+              {triggerButtons.map(
+                (trigger) =>
+                  trigger.available && (
+                    <button
+                      key={trigger.type}
+                      onClick={() => onTriggerClick(trigger.type)}
+                      className={`
+                        min-h-[44px] min-w-[40px] px-3 py-2 rounded-lg font-semibold text-sm
+                        transition-all duration-200 shadow-md hover:shadow-lg
+                        focus:outline-none focus:ring-2 focus:ring-offset-2
+                        ${
+                          activeTrigger === trigger.type
+                            ? `${trigger.colors.active} scale-105 focus:ring-${trigger.type === "story" ? "purple" : trigger.type === "game" ? "green" : "orange"}-500`
+                            : `${trigger.colors.inactive} ${trigger.colors.hover}`
+                        }
+                      `}
+                      aria-label={`View ${trigger.label} content`}
+                      aria-pressed={activeTrigger === trigger.type}
+                    >
+                      {trigger.label}
+                    </button>
+                  )
+              )}
+            </div>
+          )}
+
+          <p className="text-gray-700 dark:text-gray-300 text-base md:text-lg leading-relaxed mb-4 pr-14 md:pr-16">
             {event.description}
           </p>
 
           {/* Story section */}
           {event.content.story && (
-            <div className="mb-4">
+            <div className="mb-4 pr-14 md:pr-16">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
                 The Story
               </h3>
@@ -96,7 +184,7 @@ export default function CardPanel({ event, isPreview = false }: CardPanelProps) 
 
           {/* Fun facts */}
           {event.content.funFacts && event.content.funFacts.length > 0 && (
-            <div className="mb-4">
+            <div className="mb-4 pr-14 md:pr-16">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
                 Fun Facts
               </h3>
@@ -116,7 +204,7 @@ export default function CardPanel({ event, isPreview = false }: CardPanelProps) 
 
           {/* Tags */}
           {event.tags && event.tags.length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-4">
+            <div className="flex flex-wrap gap-2 mt-4 pr-14 md:pr-16">
               {event.tags.map((tag) => (
                 <span
                   key={tag}

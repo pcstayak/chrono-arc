@@ -17,6 +17,13 @@ export type {
   CreateSessionData,
   JoinSessionData,
   PlaceEventData,
+  // Epic 3: Trigger system types
+  TriggerContent,
+  TriggerType,
+  StoryTrigger,
+  GameTrigger,
+  RelatedTrigger,
+  RelatedItem,
 } from "./domain";
 
 export type { Database, Json } from "./database";
