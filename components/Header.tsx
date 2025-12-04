@@ -1,57 +1,58 @@
 /**
  * Header Component
- * Displays game title, session info, and mode indicator
+ * Story 1.1 (BA-US-header-component)
+ * Displays game title and basic action buttons (settings, help)
+ * Fixed at top, responsive, kid-friendly design
  */
 
-import type { GameMode } from "@/types";
+"use client";
 
-interface HeaderProps {
-  roomCode?: string;
-  playerCount?: number;
-  mode?: GameMode;
-}
-
-export default function Header({ roomCode, playerCount, mode }: HeaderProps) {
+export default function Header() {
   return (
-    <header className="h-[10vh] bg-gradient-to-r from-arc-primary to-arc-secondary text-white px-6 flex items-center justify-between">
-      {/* Left: Logo/Title */}
-      <div>
-        <h1 className="text-2xl font-bold">Chrono Arc</h1>
+    <header className="fixed top-0 left-0 right-0 h-[10vh] min-h-[60px] max-h-[80px] bg-gradient-to-r from-arc-primary to-arc-secondary text-white px-4 md:px-6 lg:px-8 flex items-center justify-between shadow-lg z-50">
+      {/* Left: Game Title */}
+      <div className="flex-shrink-0">
+        <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight">
+          Chrono Arc
+        </h1>
       </div>
 
-      {/* Center: Session Info */}
-      {roomCode && (
-        <div className="flex items-center gap-6 bg-white/10 px-6 py-2 rounded-lg backdrop-blur">
-          <div className="text-sm">
-            <span className="opacity-80">Room:</span>{" "}
-            <span className="font-mono font-bold text-lg">{roomCode}</span>
-          </div>
-          {playerCount !== undefined && (
-            <div className="text-sm">
-              <span className="opacity-80">Players:</span>{" "}
-              <span className="font-bold">{playerCount}</span>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Right: Mode Indicator */}
-      <div className="flex items-center gap-4">
-        {mode && (
-          <div className="bg-white/20 px-4 py-1 rounded-full text-sm font-medium capitalize">
-            {mode}
-          </div>
-        )}
-        {/* Settings Icon Placeholder */}
+      {/* Right: Action Buttons */}
+      <div className="flex items-center gap-2 md:gap-3">
+        {/* Help Button */}
         <button
-          className="p-2 hover:bg-white/10 rounded-full transition-colors"
-          aria-label="Settings"
+          className="min-w-[44px] min-h-[44px] p-2 md:p-3 hover:bg-white/10 active:bg-white/20 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-white/50"
+          aria-label="Help"
+          title="Help"
         >
           <svg
-            className="w-6 h-6"
+            className="w-5 h-5 md:w-6 md:h-6"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+        </button>
+
+        {/* Settings Button */}
+        <button
+          className="min-w-[44px] min-h-[44px] p-2 md:p-3 hover:bg-white/10 active:bg-white/20 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-white/50"
+          aria-label="Settings"
+          title="Settings"
+        >
+          <svg
+            className="w-5 h-5 md:w-6 md:h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
           >
             <path
               strokeLinecap="round"

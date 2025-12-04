@@ -18,6 +18,15 @@ body {
   color: var(--foreground);
   background: var(--background);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  /* Minimum 14px font size for readability (Story 1.1, 1.2) */
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* Ensure smooth font rendering for kid-friendly readability */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 @layer utilities {
