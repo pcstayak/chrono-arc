@@ -1,17 +1,22 @@
 /**
  * Sample Events for MVP
  * Provides 8-10 historical events for Epic 2: Timeline Arc Navigation
+ * Epic 5: Extended with hierarchical segments and event states
  * These are hardcoded events to avoid database dependency during initial development
  */
 
-import type { Event } from "@/types";
+import type { Event, TimelineSegment, TimelineEventState } from "@/types";
 
 /**
  * Sample events spanning from ancient history to modern times
  * Each event includes an arcPosition (0-100) representing its position along the timeline arc
+ * Epic 5: Added state and segmentId for timeline improvements
  */
 export interface TimelineEvent extends Event {
   arcPosition: number; // 0-100, position along the arc curve
+  state: TimelineEventState; // Epic 5: safe, threatened, or attacked
+  segmentId: string; // Epic 5: which segment this event belongs to
+  isKeyEvent: boolean; // Epic 5: shown at parent level
 }
 
 export const sampleEvents: TimelineEvent[] = [
@@ -24,6 +29,9 @@ export const sampleEvents: TimelineEvent[] = [
     tags: ["invention", "innovation"],
     difficulty: 1,
     arcPosition: 5,
+    state: "safe",
+    segmentId: "seg-early-ancient",
+    isKeyEvent: true,
     content: {
       story: "Around 3500 BCE, someone had a brilliant idea: why not make moving heavy things easier? The wheel changed everything, from carts to pottery wheels to water mills.",
       funFacts: [
@@ -69,6 +77,9 @@ export const sampleEvents: TimelineEvent[] = [
     tags: ["innovation", "culture"],
     difficulty: 2,
     arcPosition: 12,
+    state: "threatened",
+    segmentId: "seg-early-ancient",
+    isKeyEvent: true,
     content: {
       story: "The Great Pyramid of Giza is a marvel of ancient engineering. It took about 20 years to build and was the tallest human-made structure for over 3,800 years!",
       funFacts: [
@@ -114,6 +125,9 @@ export const sampleEvents: TimelineEvent[] = [
     tags: ["invention", "discovery", "innovation"],
     difficulty: 2,
     arcPosition: 28,
+    state: "safe",
+    segmentId: "seg-medieval",
+    isKeyEvent: true,
     content: {
       story: "Chinese alchemists were trying to create a potion for immortality when they accidentally discovered gunpowder. Instead of living forever, they created something that changed war and gave us fireworks!",
       funFacts: [
@@ -159,6 +173,9 @@ export const sampleEvents: TimelineEvent[] = [
     tags: ["invention", "innovation", "culture"],
     difficulty: 2,
     arcPosition: 42,
+    state: "attacked",
+    segmentId: "seg-medieval",
+    isKeyEvent: true,
     content: {
       story: "Before the printing press, books had to be copied by hand. Johannes Gutenberg invented a way to print many copies quickly, making knowledge available to everyone, not just the wealthy.",
       funFacts: [
@@ -204,6 +221,9 @@ export const sampleEvents: TimelineEvent[] = [
     tags: ["invention", "discovery", "science"],
     difficulty: 2,
     arcPosition: 52,
+    state: "safe",
+    segmentId: "seg-medieval",
+    isKeyEvent: false,
     content: {
       story: "Galileo didn't invent the telescope, but he made it much better. When he pointed it at the sky, he discovered Jupiter's moons and saw that Earth wasn't the center of the universe!",
       funFacts: [
@@ -249,6 +269,9 @@ export const sampleEvents: TimelineEvent[] = [
     tags: ["invention", "innovation", "technology"],
     difficulty: 3,
     arcPosition: 63,
+    state: "threatened",
+    segmentId: "seg-industrial",
+    isKeyEvent: true,
     content: {
       story: "James Watt didn't invent the steam engine, but he made it so much better that it could power factories, trains, and ships. This kicked off the Industrial Revolution!",
       funFacts: [
@@ -294,6 +317,9 @@ export const sampleEvents: TimelineEvent[] = [
     tags: ["invention", "innovation", "technology"],
     difficulty: 2,
     arcPosition: 73,
+    state: "safe",
+    segmentId: "seg-industrial",
+    isKeyEvent: true,
     content: {
       story: "Many inventors worked on electric lights, but Thomas Edison created one that was practical and long-lasting. No more candles and gas lamps - cities could now light up at night!",
       funFacts: [
@@ -339,6 +365,9 @@ export const sampleEvents: TimelineEvent[] = [
     tags: ["invention", "innovation", "technology"],
     difficulty: 3,
     arcPosition: 82,
+    state: "safe",
+    segmentId: "seg-early-modern",
+    isKeyEvent: true,
     content: {
       story: "Orville and Wilbur Wright were bicycle mechanics who dreamed of flying. On December 17, 1903, they flew for just 12 seconds - but it was the first controlled, powered flight in history!",
       funFacts: [
@@ -384,6 +413,9 @@ export const sampleEvents: TimelineEvent[] = [
     tags: ["invention", "innovation", "technology"],
     difficulty: 3,
     arcPosition: 90,
+    state: "threatened",
+    segmentId: "seg-contemporary",
+    isKeyEvent: true,
     content: {
       story: "The first message sent over the internet was supposed to be 'LOGIN' but the system crashed after 'LO'! From this humble start, the internet grew to connect billions of people worldwide.",
       funFacts: [
@@ -429,6 +461,9 @@ export const sampleEvents: TimelineEvent[] = [
     tags: ["invention", "innovation", "technology"],
     difficulty: 2,
     arcPosition: 96,
+    state: "attacked",
+    segmentId: "seg-contemporary",
+    isKeyEvent: true,
     content: {
       story: "When Apple launched the iPhone in 2007, it changed how we communicate, learn, and play. Now we carry powerful computers in our pockets everywhere we go!",
       funFacts: [
@@ -486,4 +521,140 @@ export function getSampleEventsByYear(): TimelineEvent[] {
  */
 export function getSampleEventsByArcPosition(): TimelineEvent[] {
   return [...sampleEvents].sort((a, b) => a.arcPosition - b.arcPosition);
+}
+
+/**
+ * Epic 5: Hierarchical timeline segments
+ * Three-level hierarchy: Top Level > Mid Level > Leaf Level
+ */
+export const timelineSegments: TimelineSegment[] = [
+  // Top Level: Ancient (3500 BCE - 500 CE)
+  {
+    id: "seg-ancient",
+    name: "Ancient Era",
+    startYear: -3500,
+    endYear: 500,
+    parentSegmentId: null,
+    level: 0,
+    children: [],
+    eventIds: ["evt-001", "evt-002"], // Only key events shown at top level
+  },
+  // Top Level: Medieval to Industrial (500 - 1900)
+  {
+    id: "seg-medieval-industrial",
+    name: "Medieval to Industrial",
+    startYear: 500,
+    endYear: 1900,
+    parentSegmentId: null,
+    level: 0,
+    children: [],
+    eventIds: ["evt-003", "evt-004", "evt-006", "evt-007"], // Key events
+  },
+  // Top Level: Modern (1900 - Present)
+  {
+    id: "seg-modern",
+    name: "Modern Era",
+    startYear: 1900,
+    endYear: 2025,
+    parentSegmentId: null,
+    level: 0,
+    children: [],
+    eventIds: ["evt-008", "evt-009", "evt-010"], // Key events
+  },
+  // Level 1: Early Ancient (drill-down from Ancient)
+  {
+    id: "seg-early-ancient",
+    name: "Early Ancient",
+    startYear: -3500,
+    endYear: -2000,
+    parentSegmentId: "seg-ancient",
+    level: 1,
+    children: [],
+    eventIds: ["evt-001", "evt-002"],
+  },
+  // Level 1: Medieval (drill-down from Medieval to Industrial)
+  {
+    id: "seg-medieval",
+    name: "Medieval & Renaissance",
+    startYear: 500,
+    endYear: 1700,
+    parentSegmentId: "seg-medieval-industrial",
+    level: 1,
+    children: [],
+    eventIds: ["evt-003", "evt-004", "evt-005"],
+  },
+  // Level 1: Industrial (drill-down from Medieval to Industrial)
+  {
+    id: "seg-industrial",
+    name: "Industrial Revolution",
+    startYear: 1700,
+    endYear: 1900,
+    parentSegmentId: "seg-medieval-industrial",
+    level: 1,
+    children: [],
+    eventIds: ["evt-006", "evt-007"],
+  },
+  // Level 1: Early Modern (drill-down from Modern)
+  {
+    id: "seg-early-modern",
+    name: "Early 20th Century",
+    startYear: 1900,
+    endYear: 1950,
+    parentSegmentId: "seg-modern",
+    level: 1,
+    children: [],
+    eventIds: ["evt-008"],
+  },
+  // Level 1: Contemporary (drill-down from Modern)
+  {
+    id: "seg-contemporary",
+    name: "Digital Age",
+    startYear: 1950,
+    endYear: 2025,
+    parentSegmentId: "seg-modern",
+    level: 1,
+    children: [],
+    eventIds: ["evt-009", "evt-010"],
+  },
+];
+
+/**
+ * Epic 5: Get top-level segments (for initial display)
+ */
+export function getTopLevelSegments(): TimelineSegment[] {
+  return timelineSegments.filter((seg) => seg.level === 0);
+}
+
+/**
+ * Epic 5: Get child segments for a parent segment
+ */
+export function getChildSegments(parentId: string): TimelineSegment[] {
+  return timelineSegments.filter((seg) => seg.parentSegmentId === parentId);
+}
+
+/**
+ * Epic 5: Get segment by ID
+ */
+export function getSegmentById(id: string): TimelineSegment | undefined {
+  return timelineSegments.find((seg) => seg.id === id);
+}
+
+/**
+ * Epic 5: Get events for a specific segment
+ */
+export function getEventsForSegment(segmentId: string): TimelineEvent[] {
+  const segment = getSegmentById(segmentId);
+  if (!segment) return [];
+
+  return sampleEvents.filter((event) => segment.eventIds.includes(event.id));
+}
+
+/**
+ * Epic 5: Get parent segment for a segment
+ */
+export function getParentSegment(segmentId: string): TimelineSegment | null {
+  const segment = getSegmentById(segmentId);
+  if (!segment || !segment.parentSegmentId) return null;
+
+  return getSegmentById(segment.parentSegmentId) || null;
 }

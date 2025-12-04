@@ -172,6 +172,35 @@ export type EventTag =
 export type EventState = "new" | "safe" | "danger" | "attack";
 
 /**
+ * Epic 5: Timeline event display state for UI
+ */
+export type TimelineEventState = "safe" | "threatened" | "attacked";
+
+/**
+ * Epic 5: Timeline segment for hierarchical navigation
+ */
+export interface TimelineSegment {
+  id: string;
+  name: string;
+  startYear: number;
+  endYear: number;
+  parentSegmentId: string | null;
+  level: number;
+  children: TimelineSegment[];
+  eventIds: string[];
+}
+
+/**
+ * Epic 5: Event state counts for segment color stacking
+ */
+export interface SegmentStateCount {
+  safe: number;
+  threatened: number;
+  attacked: number;
+  total: number;
+}
+
+/**
  * UI mode for the application
  */
 export type GameMode = "browsing" | "inserting" | "defense";

@@ -24,6 +24,10 @@ export type {
   GameTrigger,
   RelatedTrigger,
   RelatedItem,
+  // Epic 5: Timeline improvements types
+  TimelineEventState,
+  TimelineSegment,
+  SegmentStateCount,
 } from "./domain";
 
 export type { Database, Json } from "./database";

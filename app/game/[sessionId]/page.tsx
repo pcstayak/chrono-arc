@@ -2,19 +2,30 @@
  * Game Page - Epic 1: MVP Core Layout
  * Epic 2: Updated with Timeline Arc Navigation
  * Epic 3: Card Trigger System (Stories 3.1-3.3)
- * Stories: 1.1 (Header), 1.2 (Content Area), 1.3 (Footer), 2.1-2.4 (Timeline Arc), 3.1-3.3 (Triggers)
- * Main game interface with three-section fixed layout, interactive timeline, and trigger content
+ * Epic 5: Hierarchical Timeline Navigation (Stories 5.1-5.5)
+ * Stories: 1.1 (Header), 1.2 (Content Area), 1.3 (Footer), 2.1-2.4 (Timeline Arc),
+ *          3.1-3.3 (Triggers), 5.1-5.5 (Timeline Improvements)
+ * Main game interface with three-section fixed layout, interactive timeline, and hierarchical navigation
  */
 
 "use client";
 
-import { use, useState } from "react";
+import { use, useState, useCallback, useMemo } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import CardPanel from "@/components/CardPanel";
 import RightPanel from "@/components/RightPanel";
-import { sampleEvents, getSampleEventById } from "@/lib/sampleEvents";
-import type { TriggerType } from "@/types";
+import {
+  sampleEvents,
+  getSampleEventById,
+  getTopLevelSegments,
+  getChildSegments,
+  getSegmentById,
+  getEventsForSegment,
+  getParentSegment,
+  type TimelineEvent,
+} from "@/lib/sampleEvents";
+import type { TriggerType, TimelineSegment } from "@/types";
 
 interface GamePageProps {
   params: Promise<{ sessionId: string }>;
@@ -31,44 +42,146 @@ export default function GamePage({ params }: GamePageProps) {
   // Epic 3: State management for trigger system
   const [activeTrigger, setActiveTrigger] = useState<TriggerType | null>(null);
 
-  // TODO: Load session data, events, players from DAL using sessionId
-  // For MVP, using sample events from lib/sampleEvents.ts
+  // Epic 5: State management for hierarchical navigation
+  const [currentSegmentId, setCurrentSegmentId] = useState<string | null>(null);
+  const [segmentPath, setSegmentPath] = useState<string[]>([]); // Drill-down stack
+
+  /**
+   * Epic 5: Get current segments to display
+   * If no segment is selected, show top-level segments
+   * If a segment is selected, show its children or the segment itself (leaf level)
+   */
+  const currentSegments = useMemo((): TimelineSegment[] => {
+    if (currentSegmentId === null) {
+      // Top level: show main segments
+      return getTopLevelSegments();
+    }
+
+    // Check if current segment has children
+    const children = getChildSegments(currentSegmentId);
+    if (children.length > 0) {
+      // Show child segments
+      return children;
+    }
+
+    // Leaf level: show current segment
+    const currentSegment = getSegmentById(currentSegmentId);
+    return currentSegment ? [currentSegment] : [];
+  }, [currentSegmentId]);
+
+  /**
+   * Epic 5: Get events to display
+   * At top level or when viewing segments: show only key events
+   * At leaf level: show all events in the segment
+   */
+  const displayEvents = useMemo((): TimelineEvent[] => {
+    if (currentSegmentId === null) {
+      // Top level: show only key events
+      return sampleEvents.filter((event) => event.isKeyEvent);
+    }
+
+    const currentSegment = getSegmentById(currentSegmentId);
+    if (!currentSegment) return [];
+
+    // Check if we're at a leaf level (no children)
+    const children = getChildSegments(currentSegmentId);
+    if (children.length === 0) {
+      // Leaf level: show all events in this segment
+      return getEventsForSegment(currentSegmentId);
+    }
+
+    // Mid-level: show key events from all child segments
+    const allChildEvents = children.flatMap((child) =>
+      getEventsForSegment(child.id)
+    );
+    return allChildEvents.filter((event) => event.isKeyEvent);
+  }, [currentSegmentId]);
+
+  /**
+   * Epic 5: Get parent segment name for back button
+   */
+  const parentSegmentName = useMemo((): string | null => {
+    if (currentSegmentId === null) return null;
+
+    const parentSegment = getParentSegment(currentSegmentId);
+    return parentSegment ? parentSegment.name : "Top Level";
+  }, [currentSegmentId]);
 
   /**
    * Handle event hover from timeline
    * Story 2.3: Show preview in CardPanel on hover (desktop only)
    */
-  const handleEventHover = (eventId: string | null) => {
+  const handleEventHover = useCallback((eventId: string | null) => {
     setHoveredEventId(eventId);
-  };
+  }, []);
 
   /**
    * Handle event selection from timeline
    * Story 2.4: Lock event card in CardPanel on click/tap
    * Epic 3: Clear active trigger when selecting a new event
    */
-  const handleEventSelect = (eventId: string) => {
+  const handleEventSelect = useCallback((eventId: string) => {
     setSelectedEventId(eventId);
     setActiveTrigger(null); // Clear trigger when selecting a new event
-  };
+  }, []);
 
   /**
    * Handle trigger button click
    * Story 3.2: Toggle trigger buttons and update right panel
    */
-  const handleTriggerClick = (trigger: TriggerType) => {
+  const handleTriggerClick = useCallback((trigger: TriggerType) => {
     // Toggle: if clicking the same trigger, deactivate it
     setActiveTrigger((current) => (current === trigger ? null : trigger));
-  };
+  }, []);
 
   /**
    * Handle related event click from RightPanel
    * Story 3.3: Navigate to related event
    */
-  const handleRelatedEventClick = (eventId: string) => {
+  const handleRelatedEventClick = useCallback((eventId: string) => {
     setSelectedEventId(eventId);
     setActiveTrigger(null); // Clear trigger when navigating to related event
-  };
+  }, []);
+
+  /**
+   * Epic 5 Story 5.1: Handle segment click (drill-down)
+   */
+  const handleSegmentClick = useCallback(
+    (segmentId: string) => {
+      // Clear selected event when drilling down
+      setSelectedEventId(null);
+      setActiveTrigger(null);
+
+      // Update drill-down path
+      if (currentSegmentId !== null) {
+        setSegmentPath((prev) => [...prev, currentSegmentId]);
+      }
+
+      // Set new current segment
+      setCurrentSegmentId(segmentId);
+    },
+    [currentSegmentId]
+  );
+
+  /**
+   * Epic 5 Story 5.1: Handle back button click (navigate up)
+   */
+  const handleBackClick = useCallback(() => {
+    if (segmentPath.length > 0) {
+      // Pop from stack
+      const newPath = [...segmentPath];
+      const parentId = newPath.pop();
+      setSegmentPath(newPath);
+      setCurrentSegmentId(parentId || null);
+    } else {
+      // Return to top level
+      setCurrentSegmentId(null);
+    }
+
+    // Clear selection when navigating back
+    setSelectedEventId(null);
+    setActiveTrigger(null);
+  }, [segmentPath]);
 
   // Determine which event to display in CardPanel
   // Selected event takes priority over hovered event
@@ -104,12 +217,18 @@ export default function GamePage({ params }: GamePageProps) {
       </div>
 
       {/* Footer - Story 1.3 - Fixed at bottom, 18vh height */}
-      {/* Epic 2: Now contains TimelineArc component */}
+      {/* Epic 2: Contains TimelineArc component */}
+      {/* Epic 5: Enhanced with hierarchical navigation and back button */}
       <Footer
-        events={sampleEvents}
+        events={displayEvents}
+        segments={currentSegments}
+        currentSegmentId={currentSegmentId}
+        parentSegmentName={parentSegmentName}
         selectedEventId={selectedEventId}
         onEventHover={handleEventHover}
         onEventSelect={handleEventSelect}
+        onSegmentClick={handleSegmentClick}
+        onBackClick={handleBackClick}
       />
     </div>
   );
