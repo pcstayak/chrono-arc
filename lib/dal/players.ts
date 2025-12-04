@@ -29,11 +29,14 @@ export async function addPlayerToSession(
     };
   }
 
+  // TypeScript type narrowing helper
+  const validSession: { id: string; max_players: number } = session;
+
   // Check current player count
   const { count, error: countError } = await client
     .from("players")
     .select("*", { count: "exact", head: true })
-    .eq("session_id", session.id);
+    .eq("session_id", validSession.id);
 
   if (countError) {
     return {
@@ -42,7 +45,7 @@ export async function addPlayerToSession(
     };
   }
 
-  if (count !== null && count >= session.max_players) {
+  if (count !== null && count >= validSession.max_players) {
     return {
       success: false,
       error: new Error("Session is full"),
@@ -53,7 +56,7 @@ export async function addPlayerToSession(
     const { data: player, error } = await client
       .from("players")
       .insert({
-        session_id: session.id,
+        session_id: validSession.id,
         display_name: data.displayName,
         color: data.color,
       })
