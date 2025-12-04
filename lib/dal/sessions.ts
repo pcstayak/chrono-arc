@@ -3,7 +3,8 @@
  * Handles all database operations related to game sessions
  */
 
-import { getDbClient, executeQuery, generateRoomCode, parseTimestamp, type Result } from "./base";
+import { executeQuery, generateRoomCode, parseTimestamp, type Result } from "./base";
+import { supabase } from "@/lib/supabase/client";
 import type { Session, CreateSessionData } from "@/types";
 
 /**
@@ -12,11 +13,10 @@ import type { Session, CreateSessionData } from "@/types";
 export async function createSession(
   data: CreateSessionData = {}
 ): Promise<Result<Session>> {
-  const client = getDbClient();
   const roomCode = generateRoomCode();
 
   return executeQuery(async () => {
-    const { data: session, error } = await client
+    const { data: session, error } = await supabase
       .from("sessions")
       .insert({
         room_code: roomCode,
@@ -36,10 +36,8 @@ export async function createSession(
 export async function getSessionByRoomCode(
   roomCode: string
 ): Promise<Result<Session>> {
-  const client = getDbClient();
-
   return executeQuery(async () => {
-    const { data: session, error } = await client
+    const { data: session, error } = await supabase
       .from("sessions")
       .select()
       .eq("room_code", roomCode)
@@ -54,10 +52,8 @@ export async function getSessionByRoomCode(
  * Get a session by ID
  */
 export async function getSessionById(id: string): Promise<Result<Session>> {
-  const client = getDbClient();
-
   return executeQuery(async () => {
-    const { data: session, error } = await client
+    const { data: session, error } = await supabase
       .from("sessions")
       .select()
       .eq("id", id)
@@ -73,12 +69,12 @@ export async function getSessionById(id: string): Promise<Result<Session>> {
 export async function updateSessionActivity(
   sessionId: string
 ): Promise<Result<Session>> {
-  const client = getDbClient();
-
   return executeQuery(async () => {
-    const { data: session, error } = await client
+    const { data: session, error } = await supabase
       .from("sessions")
-      .update({ updated_at: new Date().toISOString() })
+      .update({
+        updated_at: new Date().toISOString(),
+      })
       .eq("id", sessionId)
       .select()
       .single();
@@ -93,12 +89,12 @@ export async function updateSessionActivity(
 export async function deactivateSession(
   sessionId: string
 ): Promise<Result<Session>> {
-  const client = getDbClient();
-
   return executeQuery(async () => {
-    const { data: session, error } = await client
+    const { data: session, error } = await supabase
       .from("sessions")
-      .update({ is_active: false })
+      .update({
+        is_active: false,
+      })
       .eq("id", sessionId)
       .select()
       .single();

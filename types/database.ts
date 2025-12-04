@@ -14,7 +14,7 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[];
 
-export interface Database {
+export type Database = {
   public: {
     Tables: {
       sessions: {
@@ -147,7 +147,12 @@ export interface Database {
       };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      shift_event_positions: {
+        Args: { p_session_id: string; p_from_position: number };
+        Returns: void;
+      };
+    };
     Enums: Record<string, never>;
   };
-}
+};

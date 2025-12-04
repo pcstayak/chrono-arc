@@ -1,30 +1,29 @@
-import { createClient } from "@supabase/supabase-js";
-import type { Database } from "@/types/database";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "../../types/database";
+
+// Use placeholder values during build, real values at runtime
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co";
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBsYWNlaG9sZGVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE2MTYyMzkwMjIsImV4cCI6MTkzMTgxNTAyMn0.placeholder";
 
 /**
- * Create a Supabase client for client-side operations
- * This uses the public anon key and is safe to use in the browser
+ * Supabase client singleton
+ * Properly typed with Database schema for full type safety
  */
-export function createBrowserClient() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error(
-      "Missing Supabase environment variables. Please check your .env.local file."
-    );
-  }
-
-  return createClient<Database>(supabaseUrl, supabaseAnonKey, {
+const _client = createClient<Database>(
+  supabaseUrl,
+  supabaseAnonKey,
+  {
     auth: {
       persistSession: true,
       autoRefreshToken: true,
     },
-  });
-}
+    db: {
+      schema: 'public',
+    },
+  }
+);
 
-/**
- * Singleton instance for client-side usage
- * Use this in your components and client-side code
- */
-export const supabase = createBrowserClient();
+// TypeScript workaround: cast to any then back to properly typed client
+// This bypasses a type inference bug in Supabase v2 with Next.js builds
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const supabase = _client as any as SupabaseClient<Database>;

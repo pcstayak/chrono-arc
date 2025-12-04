@@ -3,7 +3,8 @@
  * Handles all database operations related to events in a specific session
  */
 
-import { getDbClient, executeQuery, parseTimestamp, type Result } from "./base";
+import { executeQuery, parseTimestamp, type Result } from "./base";
+import { supabase } from "@/lib/supabase/client";
 import type { SessionEvent, EventState, PlaceEventData } from "@/types";
 
 /**
@@ -12,10 +13,8 @@ import type { SessionEvent, EventState, PlaceEventData } from "@/types";
 export async function getSessionEvents(
   sessionId: string
 ): Promise<Result<SessionEvent[]>> {
-  const client = getDbClient();
-
   return executeQuery(async () => {
-    const { data: sessionEvents, error } = await client
+    const { data: sessionEvents, error } = await supabase
       .from("session_events")
       .select(`
         *,
@@ -38,10 +37,8 @@ export async function addEventToSession(
   sessionId: string,
   eventId: string
 ): Promise<Result<SessionEvent>> {
-  const client = getDbClient();
-
   return executeQuery(async () => {
-    const { data: sessionEvent, error } = await client
+    const { data: sessionEvent, error } = await supabase
       .from("session_events")
       .insert({
         session_id: sessionId,
@@ -69,10 +66,8 @@ export async function addEventToSession(
 export async function placeEvent(
   data: PlaceEventData
 ): Promise<Result<SessionEvent>> {
-  const client = getDbClient();
-
   // First, shift positions of existing events if needed
-  const { error: shiftError } = await client.rpc("shift_event_positions", {
+  const { error: shiftError } = await supabase.rpc("shift_event_positions", {
     p_session_id: data.sessionId,
     p_from_position: data.position,
   });
@@ -85,7 +80,7 @@ export async function placeEvent(
   }
 
   return executeQuery(async () => {
-    const { data: sessionEvent, error } = await client
+    const { data: sessionEvent, error } = await supabase
       .from("session_events")
       .update({
         state: "safe",
@@ -116,12 +111,13 @@ export async function updateEventState(
   eventId: string,
   state: EventState
 ): Promise<Result<SessionEvent>> {
-  const client = getDbClient();
-
   return executeQuery(async () => {
-    const { data: sessionEvent, error } = await client
+    const { data: sessionEvent, error } = await supabase
       .from("session_events")
-      .update({ state, updated_at: new Date().toISOString() })
+      .update({
+        state,
+        updated_at: new Date().toISOString(),
+      })
       .eq("session_id", sessionId)
       .eq("event_id", eventId)
       .select(`
@@ -144,10 +140,8 @@ export async function incrementAttackCount(
   sessionId: string,
   eventId: string
 ): Promise<Result<SessionEvent>> {
-  const client = getDbClient();
-
   return executeQuery(async () => {
-    const { data: current, error: fetchError } = await client
+    const { data: current, error: fetchError } = await supabase
       .from("session_events")
       .select("attack_count")
       .eq("session_id", sessionId)
@@ -158,7 +152,7 @@ export async function incrementAttackCount(
       return { data: null, error: fetchError };
     }
 
-    const { data: sessionEvent, error } = await client
+    const { data: sessionEvent, error } = await supabase
       .from("session_events")
       .update({
         attack_count: current.attack_count + 1,

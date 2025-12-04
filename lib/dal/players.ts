@@ -3,7 +3,8 @@
  * Handles all database operations related to players
  */
 
-import { getDbClient, executeQuery, parseTimestamp, type Result } from "./base";
+import { executeQuery, parseTimestamp, type Result } from "./base";
+import { supabase } from "@/lib/supabase/client";
 import type { Player, JoinSessionData } from "@/types";
 
 /**
@@ -12,10 +13,8 @@ import type { Player, JoinSessionData } from "@/types";
 export async function addPlayerToSession(
   data: JoinSessionData
 ): Promise<Result<Player>> {
-  const client = getDbClient();
-
   // First, get the session to verify it exists and is active
-  const { data: session, error: sessionError } = await client
+  const { data: session, error: sessionError } = await supabase
     .from("sessions")
     .select("id, max_players")
     .eq("room_code", data.roomCode)
@@ -33,7 +32,7 @@ export async function addPlayerToSession(
   const validSession: { id: string; max_players: number } = session;
 
   // Check current player count
-  const { count, error: countError } = await client
+  const { count, error: countError } = await supabase
     .from("players")
     .select("*", { count: "exact", head: true })
     .eq("session_id", validSession.id);
@@ -53,7 +52,7 @@ export async function addPlayerToSession(
   }
 
   return executeQuery(async () => {
-    const { data: player, error } = await client
+    const { data: player, error } = await supabase
       .from("players")
       .insert({
         session_id: validSession.id,
@@ -73,10 +72,8 @@ export async function addPlayerToSession(
 export async function getPlayersBySessionId(
   sessionId: string
 ): Promise<Result<Player[]>> {
-  const client = getDbClient();
-
   return executeQuery(async () => {
-    const { data: players, error } = await client
+    const { data: players, error } = await supabase
       .from("players")
       .select()
       .eq("session_id", sessionId)
@@ -93,10 +90,8 @@ export async function getPlayersBySessionId(
  * Get a player by ID
  */
 export async function getPlayerById(playerId: string): Promise<Result<Player>> {
-  const client = getDbClient();
-
   return executeQuery(async () => {
-    const { data: player, error } = await client
+    const { data: player, error } = await supabase
       .from("players")
       .select()
       .eq("id", playerId)
@@ -112,12 +107,12 @@ export async function getPlayerById(playerId: string): Promise<Result<Player>> {
 export async function updatePlayerActivity(
   playerId: string
 ): Promise<Result<Player>> {
-  const client = getDbClient();
-
   return executeQuery(async () => {
-    const { data: player, error } = await client
+    const { data: player, error } = await supabase
       .from("players")
-      .update({ last_active_at: new Date().toISOString() })
+      .update({
+        last_active_at: new Date().toISOString(),
+      })
       .eq("id", playerId)
       .select()
       .single();

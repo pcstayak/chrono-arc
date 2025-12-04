@@ -3,17 +3,16 @@
  * Handles all database operations related to historical events
  */
 
-import { getDbClient, executeQuery, parseTimestamp, type Result } from "./base";
+import { executeQuery, parseTimestamp, type Result } from "./base";
+import { supabase } from "@/lib/supabase/client";
 import type { Event, Era, EventTag, EventContent } from "@/types";
 
 /**
  * Get all available events (catalog)
  */
 export async function getAllEvents(): Promise<Result<Event[]>> {
-  const client = getDbClient();
-
   return executeQuery(async () => {
-    const { data: events, error } = await client
+    const { data: events, error } = await supabase
       .from("events")
       .select()
       .order("year", { ascending: true });
@@ -29,10 +28,8 @@ export async function getAllEvents(): Promise<Result<Event[]>> {
  * Get events by era
  */
 export async function getEventsByEra(era: Era): Promise<Result<Event[]>> {
-  const client = getDbClient();
-
   return executeQuery(async () => {
-    const { data: events, error } = await client
+    const { data: events, error } = await supabase
       .from("events")
       .select()
       .eq("era", era)
@@ -49,10 +46,8 @@ export async function getEventsByEra(era: Era): Promise<Result<Event[]>> {
  * Get a single event by ID
  */
 export async function getEventById(eventId: string): Promise<Result<Event>> {
-  const client = getDbClient();
-
   return executeQuery(async () => {
-    const { data: event, error } = await client
+    const { data: event, error } = await supabase
       .from("events")
       .select()
       .eq("id", eventId)
@@ -68,10 +63,8 @@ export async function getEventById(eventId: string): Promise<Result<Event>> {
 export async function getEventsByDifficulty(
   difficulty: number
 ): Promise<Result<Event[]>> {
-  const client = getDbClient();
-
   return executeQuery(async () => {
-    const { data: events, error } = await client
+    const { data: events, error } = await supabase
       .from("events")
       .select()
       .eq("difficulty", difficulty)

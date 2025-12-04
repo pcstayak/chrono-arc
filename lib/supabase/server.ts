@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
 
 /**
@@ -6,7 +6,7 @@ import type { Database } from "@/types/database";
  * This uses the service role key and should ONLY be used in server components,
  * API routes, or server actions where the code never reaches the client
  */
-export function createServerClient() {
+export function createServerClient(): SupabaseClient<Database> {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 

@@ -16,8 +16,8 @@ export type DbClient = SupabaseClient<Database>;
  * Get the default Supabase client
  * In the future, this could return an API client instead
  */
-export function getDbClient(): DbClient {
-  return supabase;
+export function getDbClient(): SupabaseClient<Database> {
+  return supabase as SupabaseClient<Database>;
 }
 
 /**
