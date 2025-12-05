@@ -3,13 +3,16 @@
  * Story 1.2 (BA-US-content-area-columns) - Card Panel portion
  * Epic 2: Updated to display event cards from timeline selection
  * Epic 3: Enhanced with trigger buttons (Stories 3.1, 3.2)
+ * Epic 6: Story 6.2 - UI Lockdown during attack
  * Displays historical event cards (preview or selected)
  * Shows trigger buttons on right edge for Story, Game, Related content
+ * Locks non-game tabs and hides sensitive info when event is attacked
  * Responsive: 35-40% width on desktop, full width on mobile
  */
 
 "use client";
 
+import { useState } from "react";
 import type { TimelineEvent } from "@/lib/sampleEvents";
 import type { TriggerType } from "@/types";
 
@@ -26,6 +29,27 @@ export default function CardPanel({
   activeTrigger = null,
   onTriggerClick,
 }: CardPanelProps) {
+  // Epic 6 Story 6.2: Track lockdown message display
+  const [showLockdownMessage, setShowLockdownMessage] = useState(false);
+
+  // Epic 6 Story 6.2: Check if event is under attack
+  const isUnderAttack = event?.state === "attacked";
+
+  // Epic 6 Story 6.2: Handle locked trigger click
+  const handleLockedTriggerClick = (trigger: TriggerType) => {
+    if (isUnderAttack && trigger !== "game") {
+      // Show lockdown message
+      setShowLockdownMessage(true);
+      setTimeout(() => setShowLockdownMessage(false), 3000);
+      return;
+    }
+
+    // Normal trigger click
+    if (onTriggerClick) {
+      onTriggerClick(trigger);
+    }
+  };
+
   if (!event) {
     return (
       <aside className="w-full lg:w-[38%] lg:min-w-[300px] bg-gray-100 dark:bg-gray-800 p-4 md:p-6 overflow-y-auto border-b lg:border-b-0 lg:border-r border-gray-300 dark:border-gray-700">
@@ -145,61 +169,130 @@ export default function CardPanel({
                   trigger.available && (
                     <button
                       key={trigger.type}
-                      onClick={() => onTriggerClick(trigger.type)}
+                      onClick={() => handleLockedTriggerClick(trigger.type)}
+                      disabled={isUnderAttack && trigger.type !== "game"}
                       className={`
                         min-h-[44px] min-w-[40px] px-3 py-2 rounded-lg font-semibold text-sm
                         transition-all duration-200 shadow-md hover:shadow-lg
                         focus:outline-none focus:ring-2 focus:ring-offset-2
                         ${
-                          activeTrigger === trigger.type
-                            ? `${trigger.colors.active} scale-105 focus:ring-${trigger.type === "story" ? "purple" : trigger.type === "game" ? "green" : "orange"}-500`
-                            : `${trigger.colors.inactive} ${trigger.colors.hover}`
+                          isUnderAttack && trigger.type !== "game"
+                            ? "bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-500 cursor-not-allowed opacity-50"
+                            : activeTrigger === trigger.type
+                              ? `${trigger.colors.active} scale-105 focus:ring-${trigger.type === "story" ? "purple" : trigger.type === "game" ? "green" : "orange"}-500`
+                              : `${trigger.colors.inactive} ${trigger.colors.hover}`
                         }
                       `}
                       aria-label={`View ${trigger.label} content`}
                       aria-pressed={activeTrigger === trigger.type}
+                      title={
+                        isUnderAttack && trigger.type !== "game"
+                          ? "Complete the defense first"
+                          : undefined
+                      }
                     >
                       {trigger.label}
+                      {isUnderAttack && trigger.type !== "game" && (
+                        <svg
+                          className="inline-block w-3 h-3 ml-1"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      )}
                     </button>
                   )
               )}
             </div>
           )}
 
-          <p className="text-gray-700 dark:text-gray-300 text-base md:text-lg leading-relaxed mb-4 pr-14 md:pr-16">
-            {event.description}
-          </p>
-
-          {/* Story section */}
-          {event.content.story && (
-            <div className="mb-4 pr-14 md:pr-16">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-                The Story
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400 text-sm md:text-base leading-relaxed">
-                {event.content.story}
-              </p>
-            </div>
-          )}
-
-          {/* Fun facts */}
-          {event.content.funFacts && event.content.funFacts.length > 0 && (
-            <div className="mb-4 pr-14 md:pr-16">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-                Fun Facts
-              </h3>
-              <ul className="space-y-2">
-                {event.content.funFacts.map((fact, index) => (
-                  <li
-                    key={index}
-                    className="flex items-start text-sm md:text-base text-gray-600 dark:text-gray-400"
+          {/* Epic 6 Story 6.2: Hide sensitive content during attack */}
+          {isUnderAttack ? (
+            <div className="pr-14 md:pr-16">
+              <div className="bg-red-50 dark:bg-red-900/20 border-2 border-red-300 dark:border-red-700 rounded-lg p-4 mb-4">
+                <div className="flex items-start">
+                  <svg
+                    className="w-6 h-6 text-red-600 dark:text-red-400 mr-3 flex-shrink-0 mt-0.5"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
                   >
-                    <span className="text-blue-500 mr-2 mt-1 flex-shrink-0">•</span>
-                    <span>{fact}</span>
-                  </li>
-                ))}
-              </ul>
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  <div>
+                    <h3 className="font-bold text-red-800 dark:text-red-200 mb-1">
+                      Under Attack!
+                    </h3>
+                    <p className="text-sm text-red-700 dark:text-red-300">
+                      This event is under attack by time bandits. Event details are hidden to
+                      ensure a fair defense. Click the Game button to defend this event!
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Show lockdown message when trying to access locked tabs */}
+              {showLockdownMessage && (
+                <div className="bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-300 dark:border-yellow-700 rounded-lg p-3 mb-4 animate-pulse">
+                  <p className="text-sm font-semibold text-yellow-800 dark:text-yellow-200 text-center">
+                    Complete the defense first to access other content!
+                  </p>
+                </div>
+              )}
+
+              {/* Redacted content placeholder */}
+              <div className="space-y-3 opacity-30">
+                <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-full"></div>
+                <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-5/6"></div>
+                <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-4/6"></div>
+              </div>
             </div>
+          ) : (
+            <>
+              <p className="text-gray-700 dark:text-gray-300 text-base md:text-lg leading-relaxed mb-4 pr-14 md:pr-16">
+                {event.description}
+              </p>
+
+              {/* Story section */}
+              {event.content.story && (
+                <div className="mb-4 pr-14 md:pr-16">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                    The Story
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm md:text-base leading-relaxed">
+                    {event.content.story}
+                  </p>
+                </div>
+              )}
+
+              {/* Fun facts */}
+              {event.content.funFacts && event.content.funFacts.length > 0 && (
+                <div className="mb-4 pr-14 md:pr-16">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                    Fun Facts
+                  </h3>
+                  <ul className="space-y-2">
+                    {event.content.funFacts.map((fact, index) => (
+                      <li
+                        key={index}
+                        className="flex items-start text-sm md:text-base text-gray-600 dark:text-gray-400"
+                      >
+                        <span className="text-blue-500 mr-2 mt-1 flex-shrink-0">•</span>
+                        <span>{fact}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </>
           )}
 
           {/* Tags */}
