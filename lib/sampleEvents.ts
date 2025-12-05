@@ -5,18 +5,17 @@
  * These are hardcoded events to avoid database dependency during initial development
  */
 
-import type { Event, TimelineSegment, TimelineEventState } from "@/types";
+import type { Event, TimelineSegment } from "@/types";
 
 /**
  * Sample events spanning from ancient history to modern times
  * Each event includes an arcPosition (0-100) representing its position along the timeline arc
  * Epic 5: Added state and segmentId for timeline improvements
+ * Note: Event base type now includes hierarchyLevel, parentEventId, isKeyEvent, state
  */
 export interface TimelineEvent extends Event {
   arcPosition: number; // 0-100, position along the arc curve
-  state: TimelineEventState; // Epic 5: safe, threatened, or attacked
-  segmentId: string; // Epic 5: which segment this event belongs to
-  isKeyEvent: boolean; // Epic 5: shown at parent level
+  segmentId: string; // Epic 5: which segment this event belongs to (deprecated, use parentEventId)
 }
 
 export const sampleEvents: TimelineEvent[] = [

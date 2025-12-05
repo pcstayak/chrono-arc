@@ -41,6 +41,12 @@ export interface Event {
   difficulty: number;
   content: EventContent;
   createdAt: Date;
+  // Hierarchical event structure
+  hierarchyLevel: number; // 0 = top level, 1+ = drill-down levels
+  parentEventId: string | null; // References parent event (NULL for top-level)
+  isKeyEvent: boolean; // Whether shown at parent level
+  state: TimelineEventState; // Game state: 'safe', 'threatened', or 'attacked'
+  weight: number; // Visual weight for segment distribution (0.1-10, default 1)
 }
 
 /**

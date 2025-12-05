@@ -17,13 +17,13 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import type { TimelineEvent } from "@/lib/sampleEvents";
-import type { TimelineSegment, SegmentStateCount } from "@/types";
+import type { DynamicSegment, ViewState } from "@/lib/eventSegmentation";
 import SegmentPopup from "./SegmentPopup";
 
 interface TimelineArcProps {
   events: TimelineEvent[];
-  segments: TimelineSegment[];
-  currentSegmentId: string | null;
+  segments: DynamicSegment[];
+  viewState: ViewState;
   selectedEventId: string | null;
   onEventHover: (eventId: string | null) => void;
   onEventSelect: (eventId: string) => void;
@@ -35,17 +35,10 @@ interface Point {
   y: number;
 }
 
-interface SegmentPosition {
-  segment: TimelineSegment;
-  startX: number;
-  endX: number;
-  path: string;
-  stateCounts: SegmentStateCount;
-}
-
 export default function TimelineArc({
   events,
   segments,
+  viewState,
   selectedEventId,
   onEventHover,
   onEventSelect,
@@ -138,74 +131,82 @@ export default function TimelineArc({
   }, [dimensions]);
 
   /**
-   * Epic 5: Calculate segment positions and state counts
-   * Story 5.1 & 5.4: Segment rendering with color stacking
+   * Calculate weighted t values for events
+   * Uses event weights to distribute visual space
    */
-  const segmentPositions = useMemo((): SegmentPosition[] => {
-    if (segments.length === 0) return [];
+  const eventToWeightedT = useMemo((): Map<string, number> => {
+    const tMap = new Map<string, number>();
 
-    const positions: SegmentPosition[] = [];
+    if (events.length === 0) return tMap;
 
-    // Find year range
-    const minYear = Math.min(...segments.map((s) => s.startYear));
-    const maxYear = Math.max(...segments.map((s) => s.endYear));
-    const yearRange = maxYear - minYear;
+    // Sort events by year
+    const sortedEvents = [...events].sort((a, b) => a.year - b.year);
 
-    segments.forEach((segment) => {
-      // Calculate position based on year range
-      const startT = (segment.startYear - minYear) / yearRange;
-      const endT = (segment.endYear - minYear) / yearRange;
+    // Calculate cumulative weights
+    const totalWeight = sortedEvents.reduce((sum, e) => sum + e.weight, 0);
 
-      const startPoint = getBezierPoint(startT);
-      const endPoint = getBezierPoint(endT);
-
-      // Create path for this segment
-      const segmentPath = `M ${startPoint.x} ${startPoint.y}`;
-
-      // Calculate state counts for events in this segment
-      const segmentEvents = events.filter((e) =>
-        segment.eventIds.includes(e.id)
-      );
-
-      const stateCounts: SegmentStateCount = segmentEvents.reduce(
-        (acc, event) => {
-          acc[event.state]++;
-          acc.total++;
-          return acc;
-        },
-        { safe: 0, threatened: 0, attacked: 0, total: 0 }
-      );
-
-      positions.push({
-        segment,
-        startX: startPoint.x,
-        endX: endPoint.x,
-        path: segmentPath,
-        stateCounts,
-      });
+    let cumulativeWeight = 0;
+    sortedEvents.forEach((event) => {
+      // Map cumulative weight to t value (0 to 1)
+      const t = totalWeight > 0 ? cumulativeWeight / totalWeight : 0;
+      tMap.set(event.id, t);
+      cumulativeWeight += event.weight;
     });
 
-    return positions;
-  }, [segments, dimensions, getBezierPoint, events]);
+    return tMap;
+  }, [events]);
 
   /**
-   * Calculate event positions
-   * Story 2.2: Position dots based on arcPosition
+   * Calculate t value for a year (used for segments)
+   * Interpolates between weighted event positions
+   */
+  const yearToT = useCallback(
+    (year: number): number => {
+      if (events.length === 0) return 0;
+
+      // Sort events by year
+      const sortedEvents = [...events].sort((a, b) => a.year - b.year);
+
+      // Find surrounding events
+      let beforeEvent = sortedEvents[0];
+      let afterEvent = sortedEvents[sortedEvents.length - 1];
+
+      for (let i = 0; i < sortedEvents.length - 1; i++) {
+        if (sortedEvents[i].year <= year && sortedEvents[i + 1].year >= year) {
+          beforeEvent = sortedEvents[i];
+          afterEvent = sortedEvents[i + 1];
+          break;
+        }
+      }
+
+      // Interpolate between weighted positions
+      const beforeT = eventToWeightedT.get(beforeEvent.id) || 0;
+      const afterT = eventToWeightedT.get(afterEvent.id) || 1;
+
+      const yearRange = afterEvent.year - beforeEvent.year;
+      if (yearRange === 0) return beforeT;
+
+      const yearProgress = (year - beforeEvent.year) / yearRange;
+      return beforeT + (afterT - beforeT) * yearProgress;
+    },
+    [events, eventToWeightedT]
+  );
+
+  /**
+   * Calculate event positions based on weighted distribution
+   * Events are positioned along the arc using their weight
    */
   const eventPositions = useMemo((): Map<string, Point> => {
     const positions = new Map<string, Point>();
-    const sortedEvents = [...events].sort(
-      (a, b) => a.arcPosition - b.arcPosition
-    );
 
-    sortedEvents.forEach((event) => {
-      const t = event.arcPosition / 100;
+    events.forEach((event) => {
+      const t = eventToWeightedT.get(event.id) || 0;
       const point = getBezierPoint(t);
       positions.set(event.id, point);
     });
 
     return positions;
-  }, [events, getBezierPoint]);
+  }, [events, getBezierPoint, eventToWeightedT]);
 
   /**
    * Epic 5 Story 5.3: Get dot color based on event state
@@ -277,106 +278,37 @@ export default function TimelineArc({
   }, [getBezierPoint]);
 
   /**
-   * Epic 5 Story 5.4: Render segment with color stacking along the arc curve
+   * Epic 5 Story 5.4: Render segment with chronological color sections along the arc curve
    */
-  const renderSegment = (segPos: SegmentPosition) => {
-    const { segment, stateCounts } = segPos;
+  const renderSegment = (segment: DynamicSegment) => {
     const isHovered = hoveredSegmentId === segment.id;
-    const segments: React.JSX.Element[] = [];
+    const paths: React.JSX.Element[] = [];
     const strokeWidth = dimensions.width < 768 ? 8 : 10;
 
-    // Find year range for positioning
-    const minYear = Math.min(...segmentPositions.map((s) => s.segment.startYear));
-    const maxYear = Math.max(...segmentPositions.map((s) => s.segment.endYear));
-    const yearRange = maxYear - minYear;
+    // Render each chronological color section
+    segment.colorSections.forEach((section, index) => {
+      const sectionStartT = yearToT(section.startYear);
+      const sectionEndT = yearToT(section.endYear);
+      const path = getArcSegmentPath(sectionStartT, sectionEndT);
 
-    const startT = (segment.startYear - minYear) / yearRange;
-    const endT = (segment.endYear - minYear) / yearRange;
-    const tRange = endT - startT;
-
-    // Calculate proportions for color stacking
-    const total = stateCounts.total || 1;
-    const safeProportion = stateCounts.safe / total;
-    const threatenedProportion = stateCounts.threatened / total;
-    const attackedProportion = stateCounts.attacked / total;
-
-    // Colors ordered: safe > threatened > attacked
-    let currentT = startT;
-
-    // Safe section (blue)
-    if (stateCounts.safe > 0) {
-      const sectionEndT = currentT + tRange * safeProportion;
-      const path = getArcSegmentPath(currentT, sectionEndT);
-
-      segments.push(
+      paths.push(
         <path
-          key={`${segment.id}-safe`}
+          key={`${segment.id}-${index}-${section.eventId}`}
           d={path}
-          stroke={isHovered ? "#f97316" : "#4A90E2"}
+          stroke={isHovered ? "#f97316" : section.color}
           strokeWidth={strokeWidth}
           strokeLinecap="round"
           fill="none"
           className="transition-colors duration-200"
+          style={{
+            cursor: segment.isClickable ? "pointer" : "default",
+            opacity: segment.isClickable ? 1 : 0.6,
+          }}
         />
       );
-      currentT = sectionEndT;
-    }
+    });
 
-    // Threatened section (orange)
-    if (stateCounts.threatened > 0) {
-      const sectionEndT = currentT + tRange * threatenedProportion;
-      const path = getArcSegmentPath(currentT, sectionEndT);
-
-      segments.push(
-        <path
-          key={`${segment.id}-threatened`}
-          d={path}
-          stroke={isHovered ? "#f97316" : "#F5A623"}
-          strokeWidth={strokeWidth}
-          strokeLinecap="round"
-          fill="none"
-          className="transition-colors duration-200"
-        />
-      );
-      currentT = sectionEndT;
-    }
-
-    // Attacked section (red)
-    if (stateCounts.attacked > 0) {
-      const sectionEndT = currentT + tRange * attackedProportion;
-      const path = getArcSegmentPath(currentT, sectionEndT);
-
-      segments.push(
-        <path
-          key={`${segment.id}-attacked`}
-          d={path}
-          stroke={isHovered ? "#f97316" : "#D0021B"}
-          strokeWidth={strokeWidth}
-          strokeLinecap="round"
-          fill="none"
-          className="transition-colors duration-200"
-        />
-      );
-    }
-
-    // If no events, show neutral gray
-    if (stateCounts.total === 0) {
-      const path = getArcSegmentPath(startT, endT);
-
-      segments.push(
-        <path
-          key={`${segment.id}-empty`}
-          d={path}
-          stroke={isHovered ? "#f97316" : "#9ca3af"}
-          strokeWidth={strokeWidth}
-          strokeLinecap="round"
-          fill="none"
-          className="transition-colors duration-200"
-        />
-      );
-    }
-
-    return segments;
+    return paths;
   };
 
   /**
@@ -415,16 +347,19 @@ export default function TimelineArc({
 
   /**
    * Handle segment click with debounce
-   * Story 5.1: Drill down into segment
+   * Story 5.1: Drill down into segment (only if clickable)
    */
-  const handleSegmentClick = (segmentId: string) => {
+  const handleSegmentClick = (segment: DynamicSegment) => {
+    if (!segment.isClickable) return;
+
     // Debounce rapid clicks
     if (segmentClickDebounceRef.current) {
       clearTimeout(segmentClickDebounceRef.current);
     }
 
     segmentClickDebounceRef.current = setTimeout(() => {
-      onSegmentClick(segmentId);
+      onSegmentClick(segment.id);
+      handleSegmentMouseLeave(); // Clear hover state after clicking
     }, 200);
   };
 
@@ -476,12 +411,8 @@ export default function TimelineArc({
 
   // Get hovered segment info for popup
   const hoveredSegment = hoveredSegmentId
-    ? segmentPositions.find((sp) => sp.segment.id === hoveredSegmentId)
+    ? segments.find((s) => s.id === hoveredSegmentId)
     : null;
-
-  const hoveredSegmentEvents = hoveredSegment
-    ? events.filter((e) => hoveredSegment.segment.eventIds.includes(e.id))
-    : [];
 
   return (
     <div ref={containerRef} className="w-full h-full relative">
@@ -502,28 +433,35 @@ export default function TimelineArc({
         />
 
         {/* Epic 5 Story 5.1 & 5.4: Render segments with color stacking */}
-        {segmentPositions.map((segPos) => (
-          <g key={segPos.segment.id}>
-            {renderSegment(segPos)}
+        {segments.map((segment) => {
+          const startT = yearToT(segment.startYear);
+          const endT = yearToT(segment.endYear);
+          const startPoint = getBezierPoint(startT);
+          const endPoint = getBezierPoint(endT);
 
-            {/* Invisible clickable area for segment */}
-            <rect
-              x={segPos.startX}
-              y={getBezierPoint(0.5).y - 20}
-              width={segPos.endX - segPos.startX}
-              height={40}
-              fill="transparent"
-              className="cursor-pointer"
-              onMouseEnter={(e) => handleSegmentMouseEnter(segPos.segment.id, e)}
-              onMouseMove={handleSegmentMouseMove}
-              onMouseLeave={handleSegmentMouseLeave}
-              onClick={() => handleSegmentClick(segPos.segment.id)}
-              aria-label={`${segPos.segment.name} segment`}
-              role="button"
-              tabIndex={0}
-            />
-          </g>
-        ))}
+          return (
+            <g key={segment.id}>
+              {renderSegment(segment)}
+
+              {/* Invisible clickable area for segment */}
+              <rect
+                x={startPoint.x}
+                y={getBezierPoint(0.5).y - 20}
+                width={endPoint.x - startPoint.x}
+                height={40}
+                fill="transparent"
+                style={{ cursor: segment.isClickable ? "pointer" : "default" }}
+                onMouseEnter={(e) => handleSegmentMouseEnter(segment.id, e)}
+                onMouseMove={handleSegmentMouseMove}
+                onMouseLeave={handleSegmentMouseLeave}
+                onClick={() => handleSegmentClick(segment)}
+                aria-label={`Segment from ${segment.startYear} to ${segment.endYear}`}
+                role={segment.isClickable ? "button" : "presentation"}
+                tabIndex={segment.isClickable ? 0 : -1}
+              />
+            </g>
+          );
+        })}
 
         {/* Epic 5 Story 5.2 & 5.3: Render event dots with always-visible labels */}
         {events.map((event) => {
@@ -628,10 +566,11 @@ export default function TimelineArc({
       </svg>
 
       {/* Story 5.5: Segment hover popup */}
-      {hoveredSegment && popupPosition && hoveredSegmentEvents.length > 0 && (
+      {hoveredSegment && popupPosition && (
         <SegmentPopup
-          segmentName={hoveredSegment.segment.name}
-          events={hoveredSegmentEvents}
+          segmentName={`${hoveredSegment.startYear} - ${hoveredSegment.endYear}`}
+          events={hoveredSegment.hiddenEvents}
+          stateCounts={hoveredSegment.stateCounts}
           mouseX={popupPosition.x}
           mouseY={popupPosition.y}
           containerWidth={dimensions.width}

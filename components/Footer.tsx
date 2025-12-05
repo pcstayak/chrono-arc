@@ -12,44 +12,84 @@
 import TimelineArc from "./TimelineArc";
 import BackButton from "./BackButton";
 import type { TimelineEvent } from "@/lib/sampleEvents";
-import type { TimelineSegment } from "@/types";
+import type { DynamicSegment, ViewState } from "@/lib/eventSegmentation";
 
 interface FooterProps {
   events: TimelineEvent[];
-  segments: TimelineSegment[];
-  currentSegmentId: string | null;
-  parentSegmentName: string | null;
+  segments: DynamicSegment[];
+  viewState: ViewState;
+  canNavigateBack: boolean;
+  canNavigatePrev: boolean;
+  canNavigateNext: boolean;
   selectedEventId: string | null;
   onEventHover: (eventId: string | null) => void;
   onEventSelect: (eventId: string) => void;
   onSegmentClick: (segmentId: string) => void;
   onBackClick: () => void;
+  onPrevSegment: () => void;
+  onNextSegment: () => void;
 }
 
 export default function Footer({
   events,
   segments,
-  currentSegmentId,
-  parentSegmentName,
+  viewState,
+  canNavigateBack,
+  canNavigatePrev,
+  canNavigateNext,
   selectedEventId,
   onEventHover,
   onEventSelect,
   onSegmentClick,
   onBackClick,
+  onPrevSegment,
+  onNextSegment,
 }: FooterProps) {
-  const showBackButton = currentSegmentId !== null && parentSegmentName !== null;
 
   return (
     <footer className="fixed bottom-0 left-0 right-0 h-[18vh] min-h-[100px] max-h-[200px] bg-gray-900 text-white px-4 md:px-6 py-3 md:py-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-40">
       <div className="h-full flex flex-col gap-2">
-        {/* Epic 5: Back button for hierarchical navigation */}
-        {showBackButton && (
-          <div className="flex-shrink-0">
-            <BackButton
-              parentName={parentSegmentName}
-              onClick={onBackClick}
-              show={showBackButton}
-            />
+        {/* Navigation Controls Row */}
+        {(canNavigateBack || canNavigatePrev || canNavigateNext) && (
+          <div className="flex-shrink-0 flex items-center justify-between gap-2">
+            {/* Back Button */}
+            {canNavigateBack && (
+              <BackButton
+                parentName="Previous View"
+                onClick={onBackClick}
+                show={canNavigateBack}
+              />
+            )}
+
+            {/* Prev/Next Segment Navigation */}
+            {(canNavigatePrev || canNavigateNext) && (
+              <div className="flex gap-2 ml-auto">
+                <button
+                  onClick={onPrevSegment}
+                  disabled={!canNavigatePrev}
+                  className={`px-3 py-1 rounded text-sm font-medium transition-all ${
+                    canNavigatePrev
+                      ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                      : 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                  }`}
+                  title="Previous segment"
+                >
+                  ← Prev
+                </button>
+                <button
+                  onClick={onNextSegment}
+                  disabled={!canNavigateNext}
+                  className={`px-3 py-1 rounded text-sm font-medium transition-all ${
+                    canNavigateNext
+                      ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                      : 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                  }`}
+                  title="Next segment"
+                >
+                  Next →
+                </button>
+              </div>
+            )}
           </div>
         )}
 
@@ -58,7 +98,7 @@ export default function Footer({
           <TimelineArc
             events={events}
             segments={segments}
-            currentSegmentId={currentSegmentId}
+            viewState={viewState}
             selectedEventId={selectedEventId}
             onEventHover={onEventHover}
             onEventSelect={onEventSelect}
