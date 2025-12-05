@@ -13,6 +13,7 @@ import type { TimelineEvent } from "@/lib/sampleEvents";
 interface SegmentPopupProps {
   segmentName: string;
   events: TimelineEvent[];
+  stateCounts: SegmentStateCount;
   mouseX: number;
   mouseY: number;
   containerWidth: number;
@@ -22,6 +23,7 @@ interface SegmentPopupProps {
 export default function SegmentPopup({
   segmentName,
   events,
+  stateCounts,
   mouseX,
   mouseY,
   containerWidth,
@@ -29,16 +31,6 @@ export default function SegmentPopup({
 }: SegmentPopupProps) {
   const popupRef = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState({ x: mouseX, y: mouseY });
-
-  // Calculate state counts
-  const stateCounts: SegmentStateCount = events.reduce(
-    (acc, event) => {
-      acc[event.state]++;
-      acc.total++;
-      return acc;
-    },
-    { safe: 0, threatened: 0, attacked: 0, total: 0 }
-  );
 
   // Position popup intelligently within viewport
   useEffect(() => {

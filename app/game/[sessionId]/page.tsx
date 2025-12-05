@@ -20,16 +20,15 @@
   import { convertAllEvents } from "@/lib/eventAdapter";
   import type { TriggerType } from "@/types";
   import {
-    sampleEvents,
-    getSampleEventById,
-    getTopLevelSegments,
-    getChildSegments,
-    getSegmentById,
-    getEventsForSegment,
-    getParentSegment,
-    type TimelineEvent,
-  } from "@/lib/sampleEvents";
-  import type { TriggerType, TimelineSegment } from "@/types";
+    getInitialViewState,
+    calculateSegments,
+    drillDownSegment,
+    navigateToNextSegment,
+    navigateToPrevSegment,
+    type ViewState,
+    type DynamicSegment,
+  } from "@/lib/eventSegmentation";
+  import { handleDefenseOutcome } from "@/lib/eventStateManager";
 
   interface GamePageProps {
     params: Promise<{ sessionId: string }>;
@@ -38,6 +37,9 @@
   export default function GamePage({ params }: GamePageProps) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { sessionId } = use(params);
+
+    // Convert hierarchical events to timeline events
+    const allEvents = useMemo(() => convertAllEvents(allHierarchicalEvents), []);
 
     // Epic 2: State management for timeline arc navigation
     const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
@@ -58,7 +60,7 @@
      */
     const currentSegments = useMemo((): DynamicSegment[] => {
       return calculateSegments(allEvents, currentView.visibleEventIds);
-    }, [currentView.visibleEventIds]);
+    }, [allEvents, currentView.visibleEventIds]);
 
     /**
      * Epic 5: Get visible events to display on the arc
@@ -67,7 +69,7 @@
       return allEvents.filter((event) =>
         currentView.visibleEventIds.has(event.id)
       );
-    }, [currentView.visibleEventIds]);
+    }, [allEvents, currentView.visibleEventIds]);
 
     /**
      * Epic 5: Check if we can navigate back
@@ -186,7 +188,7 @@
         setSelectedEventId(null);
         setActiveTrigger(null);
       }
-    }, [currentView]);
+    }, [allEvents, currentView]);
 
     /**
      * Handle previous segment navigation
@@ -199,19 +201,19 @@
         setSelectedEventId(null);
         setActiveTrigger(null);
       }
-    }, [currentView]);
+    }, [allEvents, currentView]);
 
     /**
      * Check if we can navigate to next/prev segments
      */
     const canNavigateNext = useMemo(
       () => navigateToNextSegment(allEvents, currentView) !== null,
-      [currentView]
+      [allEvents, currentView]
     );
 
     const canNavigatePrev = useMemo(
       () => navigateToPrevSegment(allEvents, currentView) !== null,
-      [currentView]
+      [allEvents, currentView]
     );
 
     // Determine which event to display in CardPanel

@@ -109,6 +109,10 @@ export const topLevelEvents: HierarchicalEvent[] = [
       triggers: {
         story: {
           content: "Johannes Gutenberg combined existing technologies in a new way: movable type, oil-based ink, and a modified wine press...",
+        },
+        game: {
+          placeholder: "Defend this event!",
+          previewDescription: "Answer questions correctly to defend this historical event from corruption."
         }
       }
     }
@@ -133,7 +137,12 @@ export const topLevelEvents: HierarchicalEvent[] = [
         "Steam trains could travel 30 mph - faster than any horse",
         "Steam power freed factories from needing to be near rivers"
       ],
-      triggers: {}
+      triggers: {
+        game: {
+          placeholder: "Defend this event!",
+          previewDescription: "Answer questions correctly to defend this historical event from corruption."
+        }
+      }
     }
   },
   {
@@ -156,7 +165,12 @@ export const topLevelEvents: HierarchicalEvent[] = [
         "Many experts said powered flight was impossible",
         "Within 66 years, humans walked on the moon"
       ],
-      triggers: {}
+      triggers: {
+        game: {
+          placeholder: "Defend this event!",
+          previewDescription: "Answer questions correctly to defend this historical event from corruption."
+        }
+      }
     }
   },
   {
@@ -179,7 +193,12 @@ export const topLevelEvents: HierarchicalEvent[] = [
         "The computer that got them there had less power than a modern calculator",
         "Footprints on the moon will last millions of years (no wind to erase them)"
       ],
-      triggers: {}
+      triggers: {
+        game: {
+          placeholder: "Defend this event!",
+          previewDescription: "Answer questions correctly to defend this historical event from corruption."
+        }
+      }
     }
   },
   {
@@ -202,7 +221,12 @@ export const topLevelEvents: HierarchicalEvent[] = [
         "The first website explained what the World Wide Web was",
         "By 2000, there were 17 million websites; now there are over 1 billion"
       ],
-      triggers: {}
+      triggers: {
+        game: {
+          placeholder: "Defend this event!",
+          previewDescription: "Answer questions correctly to defend this historical event from corruption."
+        }
+      }
     }
   },
 ];
@@ -232,7 +256,12 @@ export const ancientEraEvents: HierarchicalEvent[] = [
         "Cuneiform used a reed stylus pressed into wet clay",
         "Egyptian hieroglyphics developed independently around the same time"
       ],
-      triggers: {}
+      triggers: {
+        game: {
+          placeholder: "Defend this event!",
+          previewDescription: "Answer questions correctly to defend this historical event from corruption."
+        }
+      }
     }
   },
   {
@@ -255,7 +284,12 @@ export const ancientEraEvents: HierarchicalEvent[] = [
         "Aligned precisely with cardinal directions",
         "Built by paid workers, not slaves"
       ],
-      triggers: {}
+      triggers: {
+        game: {
+          placeholder: "Defend this event!",
+          previewDescription: "Answer questions correctly to defend this historical event from corruption."
+        }
+      }
     }
   },
   {
@@ -278,7 +312,12 @@ export const ancientEraEvents: HierarchicalEvent[] = [
         "Different punishments for different social classes",
         "Carved on an 8-foot tall stone pillar"
       ],
-      triggers: {}
+      triggers: {
+        game: {
+          placeholder: "Defend this event!",
+          previewDescription: "Answer questions correctly to defend this historical event from corruption."
+        }
+      }
     }
   },
   {
@@ -301,7 +340,12 @@ export const ancientEraEvents: HierarchicalEvent[] = [
         "Used colored stones to cast votes",
         "Inspired modern democratic governments"
       ],
-      triggers: {}
+      triggers: {
+        game: {
+          placeholder: "Defend this event!",
+          previewDescription: "Answer questions correctly to defend this historical event from corruption."
+        }
+      }
     }
   },
   {
@@ -324,7 +368,12 @@ export const ancientEraEvents: HierarchicalEvent[] = [
         "Introduced aqueducts, concrete, and arches",
         "Latin became the basis for Romance languages"
       ],
-      triggers: {}
+      triggers: {
+        game: {
+          placeholder: "Defend this event!",
+          previewDescription: "Answer questions correctly to defend this historical event from corruption."
+        }
+      }
     }
   },
 ];
@@ -354,7 +403,12 @@ export const medievalRenaissanceEvents: HierarchicalEvent[] = [
         "First guns appeared in China around 1200",
         "Ended the age of castles and knights in armor"
       ],
-      triggers: {}
+      triggers: {
+        game: {
+          placeholder: "Defend this event!",
+          previewDescription: "Answer questions correctly to defend this historical event from corruption."
+        }
+      }
     }
   },
   {
@@ -377,7 +431,12 @@ export const medievalRenaissanceEvents: HierarchicalEvent[] = [
         "Most clauses were quickly repealed",
         "Established the principle: even kings must follow the law"
       ],
-      triggers: {}
+      triggers: {
+        game: {
+          placeholder: "Defend this event!",
+          previewDescription: "Answer questions correctly to defend this historical event from corruption."
+        }
+      }
     }
   },
   {
@@ -400,7 +459,12 @@ export const medievalRenaissanceEvents: HierarchicalEvent[] = [
         "Led to labor shortages that improved conditions for peasants",
         "Took 200 years for Europe's population to recover"
       ],
-      triggers: {}
+      triggers: {
+        game: {
+          placeholder: "Defend this event!",
+          previewDescription: "Answer questions correctly to defend this historical event from corruption."
+        }
+      }
     }
   },
   {
@@ -423,7 +487,12 @@ export const medievalRenaissanceEvents: HierarchicalEvent[] = [
         "Indigenous peoples had lived in the Americas for 15,000+ years",
         "Columbian Exchange transformed cuisines worldwide"
       ],
-      triggers: {}
+      triggers: {
+        game: {
+          placeholder: "Defend this event!",
+          previewDescription: "Answer questions correctly to defend this historical event from corruption."
+        }
+      }
     }
   },
   {
@@ -446,7 +515,12 @@ export const medievalRenaissanceEvents: HierarchicalEvent[] = [
         "Church put him under house arrest for his discoveries",
         "Opened the door to modern astronomy"
       ],
-      triggers: {}
+      triggers: {
+        game: {
+          placeholder: "Defend this event!",
+          previewDescription: "Answer questions correctly to defend this historical event from corruption."
+        }
+      }
     }
   },
 ];
@@ -476,7 +550,12 @@ export const industrialEraEvents: HierarchicalEvent[] = [
         "France helped the colonies win",
         "Created the first modern constitutional democracy"
       ],
-      triggers: {}
+      triggers: {
+        game: {
+          placeholder: "Defend this event!",
+          previewDescription: "Answer questions correctly to defend this historical event from corruption."
+        }
+      }
     }
   },
   {
@@ -499,7 +578,12 @@ export const industrialEraEvents: HierarchicalEvent[] = [
         "Revolutionized how we remember history",
         "Led to movies, television, and digital cameras"
       ],
-      triggers: {}
+      triggers: {
+        game: {
+          placeholder: "Defend this event!",
+          previewDescription: "Answer questions correctly to defend this historical event from corruption."
+        }
+      }
     }
   },
   {
@@ -522,7 +606,12 @@ export const industrialEraEvents: HierarchicalEvent[] = [
         "Used Morse code: dots and dashes",
         "Connected continents via undersea cables"
       ],
-      triggers: {}
+      triggers: {
+        game: {
+          placeholder: "Defend this event!",
+          previewDescription: "Answer questions correctly to defend this historical event from corruption."
+        }
+      }
     }
   },
   {
@@ -545,7 +634,12 @@ export const industrialEraEvents: HierarchicalEvent[] = [
         "By 1900, there were 600,000 phones in the US",
         "Led to smartphones 130 years later"
       ],
-      triggers: {}
+      triggers: {
+        game: {
+          placeholder: "Defend this event!",
+          previewDescription: "Answer questions correctly to defend this historical event from corruption."
+        }
+      }
     }
   },
   {
@@ -568,7 +662,12 @@ export const industrialEraEvents: HierarchicalEvent[] = [
         "First bulbs lasted only 13.5 hours",
         "Transformed cities - no more gaslights or candles"
       ],
-      triggers: {}
+      triggers: {
+        game: {
+          placeholder: "Defend this event!",
+          previewDescription: "Answer questions correctly to defend this historical event from corruption."
+        }
+      }
     }
   },
 ];
@@ -598,7 +697,12 @@ export const earlyModernEvents: HierarchicalEvent[] = [
         "By 1930, 40% of US homes had radios",
         "United nations during World War II through broadcasts"
       ],
-      triggers: {}
+      triggers: {
+        game: {
+          placeholder: "Defend this event!",
+          previewDescription: "Answer questions correctly to defend this historical event from corruption."
+        }
+      }
     }
   },
   {
@@ -621,7 +725,12 @@ export const earlyModernEvents: HierarchicalEvent[] = [
         "Mass production started during WWII",
         "Reduced death from infections by over 90%"
       ],
-      triggers: {}
+      triggers: {
+        game: {
+          placeholder: "Defend this event!",
+          previewDescription: "Answer questions correctly to defend this historical event from corruption."
+        }
+      }
     }
   },
   {
@@ -644,7 +753,12 @@ export const earlyModernEvents: HierarchicalEvent[] = [
         "By 1960, 90% of US homes had TVs",
         "Changed politics, advertising, and culture"
       ],
-      triggers: {}
+      triggers: {
+        game: {
+          placeholder: "Defend this event!",
+          previewDescription: "Answer questions correctly to defend this historical event from corruption."
+        }
+      }
     }
   },
   {
@@ -667,7 +781,12 @@ export const earlyModernEvents: HierarchicalEvent[] = [
         "Led to creation of United Nations",
         "Sparked the Cold War between US and USSR"
       ],
-      triggers: {}
+      triggers: {
+        game: {
+          placeholder: "Defend this event!",
+          previewDescription: "Answer questions correctly to defend this historical event from corruption."
+        }
+      }
     }
   },
   {
@@ -690,7 +809,12 @@ export const earlyModernEvents: HierarchicalEvent[] = [
         "Led to genome sequencing and genetic engineering",
         "Explained how life passes traits to offspring"
       ],
-      triggers: {}
+      triggers: {
+        game: {
+          placeholder: "Defend this event!",
+          previewDescription: "Answer questions correctly to defend this historical event from corruption."
+        }
+      }
     }
   },
 ];
@@ -720,7 +844,12 @@ export const spaceAgeEvents: HierarchicalEvent[] = [
         "Orbited Earth every 96 minutes",
         "Led to NASA's creation in 1958"
       ],
-      triggers: {}
+      triggers: {
+        game: {
+          placeholder: "Defend this event!",
+          previewDescription: "Answer questions correctly to defend this historical event from corruption."
+        }
+      }
     }
   },
   {
@@ -743,7 +872,12 @@ export const spaceAgeEvents: HierarchicalEvent[] = [
         "Had 2,300 transistors (modern chips have billions)",
         "Made personal computers possible"
       ],
-      triggers: {}
+      triggers: {
+        game: {
+          placeholder: "Defend this event!",
+          previewDescription: "Answer questions correctly to defend this historical event from corruption."
+        }
+      }
     }
   },
   {
@@ -766,7 +900,12 @@ export const spaceAgeEvents: HierarchicalEvent[] = [
         "Had 4KB of RAM (modern phones have millions of times more)",
         "Introduced color graphics and sound"
       ],
-      triggers: {}
+      triggers: {
+        game: {
+          placeholder: "Defend this event!",
+          previewDescription: "Answer questions correctly to defend this historical event from corruption."
+        }
+      }
     }
   },
   {
@@ -789,7 +928,12 @@ export const spaceAgeEvents: HierarchicalEvent[] = [
         "Ran MS-DOS (Microsoft's first big success)",
         "Sparked the 'PC clone' industry"
       ],
-      triggers: {}
+      triggers: {
+        game: {
+          placeholder: "Defend this event!",
+          previewDescription: "Answer questions correctly to defend this historical event from corruption."
+        }
+      }
     }
   },
   {
@@ -812,7 +956,12 @@ export const spaceAgeEvents: HierarchicalEvent[] = [
         "Separated families for nearly 3 decades",
         "Symbolized the end of Soviet domination in Eastern Europe"
       ],
-      triggers: {}
+      triggers: {
+        game: {
+          placeholder: "Defend this event!",
+          previewDescription: "Answer questions correctly to defend this historical event from corruption."
+        }
+      }
     }
   },
 ];
@@ -843,7 +992,12 @@ export const digitalAgeLevel1Events: HierarchicalEvent[] = [
         "Now powers most web servers and Android phones",
         "Thousands of developers contribute for free"
       ],
-      triggers: {}
+      triggers: {
+        game: {
+          placeholder: "Defend this event!",
+          previewDescription: "Answer questions correctly to defend this historical event from corruption."
+        }
+      }
     }
   },
   {
@@ -866,7 +1020,12 @@ export const digitalAgeLevel1Events: HierarchicalEvent[] = [
         "Started in a garage",
         "Processes 8.5 billion searches per day"
       ],
-      triggers: {}
+      triggers: {
+        game: {
+          placeholder: "Defend this event!",
+          previewDescription: "Answer questions correctly to defend this historical event from corruption."
+        }
+      }
     }
   },
   {
@@ -889,7 +1048,12 @@ export const digitalAgeLevel1Events: HierarchicalEvent[] = [
         "Written by volunteers, no ads",
         "Has articles on topics no traditional encyclopedia would cover"
       ],
-      triggers: {}
+      triggers: {
+        game: {
+          placeholder: "Defend this event!",
+          previewDescription: "Answer questions correctly to defend this historical event from corruption."
+        }
+      }
     }
   },
   {
@@ -912,7 +1076,12 @@ export const digitalAgeLevel1Events: HierarchicalEvent[] = [
         "Sparked the social media revolution",
         "Changed politics, journalism, and relationships"
       ],
-      triggers: {}
+      triggers: {
+        game: {
+          placeholder: "Defend this event!",
+          previewDescription: "Answer questions correctly to defend this historical event from corruption."
+        }
+      }
     }
   },
   {
@@ -935,7 +1104,12 @@ export const digitalAgeLevel1Events: HierarchicalEvent[] = [
         "First iPhone had no App Store",
         "Sparked the smartphone revolution (billions now own one)"
       ],
-      triggers: {}
+      triggers: {
+        game: {
+          placeholder: "Defend this event!",
+          previewDescription: "Answer questions correctly to defend this historical event from corruption."
+        }
+      }
     }
   },
   {
@@ -958,7 +1132,12 @@ export const digitalAgeLevel1Events: HierarchicalEvent[] = [
         "Built on decades of AI research",
         "Raising questions about jobs, creativity, and society"
       ],
-      triggers: {}
+      triggers: {
+        game: {
+          placeholder: "Defend this event!",
+          previewDescription: "Answer questions correctly to defend this historical event from corruption."
+        }
+      }
     }
   },
 ];

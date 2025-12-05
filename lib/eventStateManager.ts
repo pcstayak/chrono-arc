@@ -4,7 +4,7 @@
  * Manages event security state updates based on defense outcomes
  */
 
-import { sampleEvents } from "./sampleEvents";
+import { allHierarchicalEvents } from "./hierarchicalEvents";
 import type { TimelineEventState } from "@/types";
 
 /**
@@ -13,7 +13,7 @@ import type { TimelineEventState } from "@/types";
  * In production, this would update a database or global state store
  */
 export function updateEventState(eventId: string, newState: TimelineEventState): boolean {
-  const event = sampleEvents.find((e) => e.id === eventId);
+  const event = allHierarchicalEvents.find((e) => e.id === eventId);
 
   if (!event) {
     console.error(`Event ${eventId} not found`);
@@ -51,7 +51,7 @@ export function handleDefenseOutcome(eventId: string, success: boolean): void {
  * Returns false if event is not in attacked state
  */
 export function canDefendEvent(eventId: string): boolean {
-  const event = sampleEvents.find((e) => e.id === eventId);
+  const event = allHierarchicalEvents.find((e) => e.id === eventId);
 
   if (!event) {
     return false;
@@ -64,7 +64,7 @@ export function canDefendEvent(eventId: string): boolean {
  * Get current event state
  */
 export function getEventState(eventId: string): TimelineEventState | null {
-  const event = sampleEvents.find((e) => e.id === eventId);
+  const event = allHierarchicalEvents.find((e) => e.id === eventId);
   return event ? event.state : null;
 }
 
@@ -73,7 +73,7 @@ export function getEventState(eventId: string): TimelineEventState | null {
  * Changes event state from "safe" to "attacked"
  */
 export function simulateAttack(eventId: string): boolean {
-  const event = sampleEvents.find((e) => e.id === eventId);
+  const event = allHierarchicalEvents.find((e) => e.id === eventId);
 
   if (!event) {
     console.error(`Event ${eventId} not found`);
