@@ -1,250 +1,283 @@
-/**
- * Game Page - Epic 1: MVP Core Layout
- * Epic 2: Updated with Timeline Arc Navigation
- * Epic 3: Card Trigger System (Stories 3.1-3.3)
- * Epic 5: Hierarchical Timeline Navigation (Stories 5.1-5.5)
- * Stories: 1.1 (Header), 1.2 (Content Area), 1.3 (Footer), 2.1-2.4 (Timeline Arc),
- *          3.1-3.3 (Triggers), 5.1-5.5 (Timeline Improvements)
- * Main game interface with three-section fixed layout, interactive timeline, and hierarchical navigation
- */
-
-"use client";
-
-import { use, useState, useCallback, useMemo } from "react";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import CardPanel from "@/components/CardPanel";
-import RightPanel from "@/components/RightPanel";
-import type { TimelineEvent } from "@/lib/sampleEvents";
-import { allHierarchicalEvents } from "@/lib/hierarchicalEvents";
-import { convertAllEvents } from "@/lib/eventAdapter";
-import type { TriggerType } from "@/types";
-import {
-  calculateSegments,
-  drillDownSegment,
-  getInitialViewState,
-  navigateToNextSegment,
-  navigateToPrevSegment,
-  type DynamicSegment,
-  type ViewState,
-} from "@/lib/eventSegmentation";
-
-// Convert hierarchical events to timeline events
-const allEvents = convertAllEvents(allHierarchicalEvents);
-
-interface GamePageProps {
-  params: Promise<{ sessionId: string }>;
-}
-
-export default function GamePage({ params }: GamePageProps) {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { sessionId } = use(params);
-
-  // Epic 2: State management for timeline arc navigation
-  const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
-  const [hoveredEventId, setHoveredEventId] = useState<string | null>(null);
-
-  // Epic 3: State management for trigger system
-  const [activeTrigger, setActiveTrigger] = useState<TriggerType | null>(null);
-
-  // Epic 5: State management for event-driven segmentation
-  const [viewHistory, setViewHistory] = useState<ViewState[]>([]);
-  const [currentView, setCurrentView] = useState<ViewState>(() =>
-    getInitialViewState(allEvents)
-  );
-
   /**
-   * Epic 5: Calculate dynamic segments based on visible events
-   * Segments are created between visible events and contain hidden events
+   * Game Page - Epic 1: MVP Core Layout
+   * Epic 2: Updated with Timeline Arc Navigation
+   * Epic 3: Card Trigger System (Stories 3.1-3.3)
+   * Epic 5: Hierarchical Timeline Navigation (Stories 5.1-5.5)
+   * Stories: 1.1 (Header), 1.2 (Content Area), 1.3 (Footer), 2.1-2.4 (Timeline Arc),
+   *          3.1-3.3 (Triggers), 5.1-5.5 (Timeline Improvements)
+   * Main game interface with three-section fixed layout, interactive timeline, and hierarchical navigation
    */
-  const currentSegments = useMemo((): DynamicSegment[] => {
-    return calculateSegments(allEvents, currentView.visibleEventIds);
-  }, [currentView.visibleEventIds]);
 
-  /**
-   * Epic 5: Get visible events to display on the arc
-   */
-  const displayEvents = useMemo((): TimelineEvent[] => {
-    return allEvents.filter((event) =>
-      currentView.visibleEventIds.has(event.id)
+  "use client";
+
+  import { use, useState, useCallback, useMemo, useEffect } from "react";
+  import Header from "@/components/Header";
+  import Footer from "@/components/Footer";
+  import CardPanel from "@/components/CardPanel";
+  import RightPanel from "@/components/RightPanel";
+  import type { TimelineEvent } from "@/lib/sampleEvents";
+  import { allHierarchicalEvents } from "@/lib/hierarchicalEvents";
+  import { convertAllEvents } from "@/lib/eventAdapter";
+  import type { TriggerType } from "@/types";
+  import {
+    getInitialViewState,
+    calculateSegments,
+    drillDownSegment,
+    navigateToNextSegment,
+    navigateToPrevSegment,
+    type ViewState,
+    type DynamicSegment,
+  } from "@/lib/eventSegmentation";
+  import { handleDefenseOutcome } from "@/lib/eventStateManager";
+
+  interface GamePageProps {
+    params: Promise<{ sessionId: string }>;
+  }
+
+  export default function GamePage({ params }: GamePageProps) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { sessionId } = use(params);
+
+    // Convert hierarchical events to timeline events
+    const allEvents = useMemo(() => convertAllEvents(allHierarchicalEvents), []);
+
+    // Epic 2: State management for timeline arc navigation
+    const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
+    const [hoveredEventId, setHoveredEventId] = useState<string | null>(null);
+
+    // Epic 3: State management for trigger system
+    const [activeTrigger, setActiveTrigger] = useState<TriggerType | null>(null);
+
+    // Epic 5: State management for event-driven segmentation
+    const [viewHistory, setViewHistory] = useState<ViewState[]>([]);
+    const [currentView, setCurrentView] = useState<ViewState>(() =>
+      getInitialViewState(allEvents)
     );
-  }, [currentView.visibleEventIds]);
 
-  /**
-   * Epic 5: Check if we can navigate back
-   */
-  const canNavigateBack = viewHistory.length > 0;
+    /**
+     * Epic 5: Calculate dynamic segments based on visible events
+     * Segments are created between visible events and contain hidden events
+     */
+    const currentSegments = useMemo((): DynamicSegment[] => {
+      return calculateSegments(allEvents, currentView.visibleEventIds);
+    }, [allEvents, currentView.visibleEventIds]);
 
-  /**
-   * Handle event hover from timeline
-   * Story 2.3: Show preview in CardPanel on hover (desktop only)
-   */
-  const handleEventHover = useCallback((eventId: string | null) => {
-    setHoveredEventId(eventId);
-  }, []);
+    /**
+     * Epic 5: Get visible events to display on the arc
+     */
+    const displayEvents = useMemo((): TimelineEvent[] => {
+      return allEvents.filter((event) =>
+        currentView.visibleEventIds.has(event.id)
+      );
+    }, [allEvents, currentView.visibleEventIds]);
 
-  /**
-   * Handle event selection from timeline
-   * Story 2.4: Lock event card in CardPanel on click/tap
-   * Epic 3: Clear active trigger when selecting a new event
-   */
-  const handleEventSelect = useCallback((eventId: string) => {
-    setSelectedEventId(eventId);
-    setActiveTrigger(null); // Clear trigger when selecting a new event
-  }, []);
+    /**
+     * Epic 5: Check if we can navigate back
+     */
+    const canNavigateBack = viewHistory.length > 0;
 
-  /**
-   * Handle trigger button click
-   * Story 3.2: Toggle trigger buttons and update right panel
-   */
-  const handleTriggerClick = useCallback((trigger: TriggerType) => {
-    // Toggle: if clicking the same trigger, deactivate it
-    setActiveTrigger((current) => (current === trigger ? null : trigger));
-  }, []);
+    /**
+     * Handle event hover from timeline
+     * Story 2.3: Show preview in CardPanel on hover (desktop only)
+     */
+    const handleEventHover = useCallback((eventId: string | null) => {
+      setHoveredEventId(eventId);
+    }, []);
 
-  /**
-   * Handle related event click from RightPanel
-   * Story 3.3: Navigate to related event
-   */
-  const handleRelatedEventClick = useCallback((eventId: string) => {
-    setSelectedEventId(eventId);
-    setActiveTrigger(null); // Clear trigger when navigating to related event
-  }, []);
+    /**
+     * Handle event selection from timeline
+     * Story 2.4: Lock event card in CardPanel on click/tap
+     * Epic 3: Clear active trigger when selecting a new event
+     */
+    const handleEventSelect = useCallback((eventId: string) => {
+      setSelectedEventId(eventId);
+      setActiveTrigger(null); // Clear trigger when selecting a new event
+    }, []);
 
-  /**
-   * Epic 5 Story 5.1: Handle segment click (drill-down)
-   * Zooms the arc to show the segment's date range and reveals hidden events
-   */
-  const handleSegmentClick = useCallback(
-    (segmentId: string) => {
-      // Find the segment
-      const segment = currentSegments.find((s) => s.id === segmentId);
-      if (!segment || !segment.isClickable) return;
+    /**
+     * Handle trigger button click
+     * Story 3.2: Toggle trigger buttons and update right panel
+     */
+    const handleTriggerClick = useCallback((trigger: TriggerType) => {
+      // Toggle: if clicking the same trigger, deactivate it
+      setActiveTrigger((current) => (current === trigger ? null : trigger));
+    }, []);
 
-      // Clear selected event when drilling down
+    /**
+     * Handle related event click from RightPanel
+     * Story 3.3: Navigate to related event
+     */
+    const handleRelatedEventClick = useCallback((eventId: string) => {
+      setSelectedEventId(eventId);
+      setActiveTrigger(null); // Clear trigger when navigating to related event
+    }, []);
+
+    // Epic 6 Story 6.4: State to force re-render when event states change
+    const [, setStateUpdateTrigger] = useState(0);
+
+    /**
+     * Epic 6 Story 6.4: Handle defense completion
+     * Update event state based on defense outcome
+     */
+    const handleDefenseComplete = useCallback((eventId: string, success: boolean) => {
+      console.log(`Defense ${success ? "succeeded" : "failed"} for event ${eventId}`);
+
+      // Update the event state
+      handleDefenseOutcome(eventId, success);
+
+      // Force re-render to reflect state changes
+      // In production, this would be handled by a state management library (Redux, Zustand, etc.)
+      setStateUpdateTrigger((prev) => prev + 1);
+
+      // Clear the active trigger after defense completes
+      setTimeout(() => {
+        setActiveTrigger(null);
+      }, 3500);
+    }, []);
+
+    /**
+     * Epic 5 Story 5.1: Handle segment click (drill-down)
+     * Zooms the arc to show the segment's date range and reveals hidden events
+     */
+    const handleSegmentClick = useCallback(
+      (segmentId: string) => {
+        // Find the segment
+        const segment = currentSegments.find((s) => s.id === segmentId);
+        if (!segment || !segment.isClickable) return;
+
+        // Clear selected event when drilling down
+        setSelectedEventId(null);
+        setActiveTrigger(null);
+
+        // Save current view to history
+        setViewHistory((prev) => [...prev, currentView]);
+
+        // Drill down into segment
+        const newView = drillDownSegment(segment, currentView.visibleEventIds);
+        setCurrentView(newView);
+      },
+      [currentSegments, currentView]
+    );
+
+    /**
+     * Epic 5 Story 5.1: Handle back button click (navigate up)
+     * Restores previous view from history
+     */
+    const handleBackClick = useCallback(() => {
+      if (viewHistory.length === 0) return;
+
+      // Pop last view from history
+      const newHistory = [...viewHistory];
+      const previousView = newHistory.pop()!;
+      setViewHistory(newHistory);
+      setCurrentView(previousView);
+
+      // Clear selection when navigating back
       setSelectedEventId(null);
       setActiveTrigger(null);
+    }, [viewHistory]);
 
-      // Save current view to history
-      setViewHistory((prev) => [...prev, currentView]);
+    /**
+     * Handle next segment navigation
+     * Navigate to next sibling segment at same hierarchy level
+     */
+    const handleNextSegment = useCallback(() => {
+      const nextView = navigateToNextSegment(allEvents, currentView);
+      if (nextView) {
+        setCurrentView(nextView);
+        setSelectedEventId(null);
+        setActiveTrigger(null);
+      }
+    }, [allEvents, currentView]);
 
-      // Drill down into segment
-      const newView = drillDownSegment(segment, currentView.visibleEventIds);
-      setCurrentView(newView);
-    },
-    [currentSegments, currentView]
-  );
+    /**
+     * Handle previous segment navigation
+     * Navigate to previous sibling segment at same hierarchy level
+     */
+    const handlePrevSegment = useCallback(() => {
+      const prevView = navigateToPrevSegment(allEvents, currentView);
+      if (prevView) {
+        setCurrentView(prevView);
+        setSelectedEventId(null);
+        setActiveTrigger(null);
+      }
+    }, [allEvents, currentView]);
 
-  /**
-   * Epic 5 Story 5.1: Handle back button click (navigate up)
-   * Restores previous view from history
-   */
-  const handleBackClick = useCallback(() => {
-    if (viewHistory.length === 0) return;
+    /**
+     * Check if we can navigate to next/prev segments
+     */
+    const canNavigateNext = useMemo(
+      () => navigateToNextSegment(allEvents, currentView) !== null,
+      [allEvents, currentView]
+    );
 
-    // Pop last view from history
-    const newHistory = [...viewHistory];
-    const previousView = newHistory.pop()!;
-    setViewHistory(newHistory);
-    setCurrentView(previousView);
+    const canNavigatePrev = useMemo(
+      () => navigateToPrevSegment(allEvents, currentView) !== null,
+      [allEvents, currentView]
+    );
 
-    // Clear selection when navigating back
-    setSelectedEventId(null);
-    setActiveTrigger(null);
-  }, [viewHistory]);
+    // Determine which event to display in CardPanel
+    // Selected event takes priority over hovered event
+    const displayEventId = selectedEventId || hoveredEventId;
+    const displayEvent = displayEventId
+      ? allEvents.find(e => e.id === displayEventId) || null
+      : null;
+    const isPreview = hoveredEventId !== null && selectedEventId === null;
 
-  /**
-   * Handle next segment navigation
-   * Navigate to next sibling segment at same hierarchy level
-   */
-  const handleNextSegment = useCallback(() => {
-    const nextView = navigateToNextSegment(allEvents, currentView);
-    if (nextView) {
-      setCurrentView(nextView);
-      setSelectedEventId(null);
-      setActiveTrigger(null);
-    }
-  }, [currentView]);
+    // Epic 6 Story 6.2: Auto-switch to Game tab when event is attacked
+    useEffect(() => {
+      if (displayEvent?.state === "attacked" && activeTrigger !== "game") {
+        setActiveTrigger("game");
+      }
+    }, [displayEvent, activeTrigger]);
 
-  /**
-   * Handle previous segment navigation
-   * Navigate to previous sibling segment at same hierarchy level
-   */
-  const handlePrevSegment = useCallback(() => {
-    const prevView = navigateToPrevSegment(allEvents, currentView);
-    if (prevView) {
-      setCurrentView(prevView);
-      setSelectedEventId(null);
-      setActiveTrigger(null);
-    }
-  }, [currentView]);
+    return (
+      <div className="h-screen w-full overflow-hidden bg-background">
+        {/* Header - Story 1.1 - Fixed at top, 10vh height */}
+        <Header />
 
-  /**
-   * Check if we can navigate to next/prev segments
-   */
-  const canNavigateNext = useMemo(
-    () => navigateToNextSegment(allEvents, currentView) !== null,
-    [currentView]
-  );
+        {/* Content Area - Story 1.2 - Two columns on desktop, stacked on mobile */}
+        {/* Account for fixed header (10vh) and footer (18vh) - leaves ~72vh for content */}
+        <div className="fixed top-[10vh] left-0 right-0 bottom-[18vh] flex flex-col lg:flex-row overflow-hidden">
+          {/* Left Column - Card Panel (35-40% on desktop, full width on mobile) */}
+          {/* Epic 2: Displays selected/hovered event from timeline */}
+          {/* Epic 3: Shows trigger buttons when event is selected (not preview) */}
+          <CardPanel
+            event={displayEvent || null}
+            isPreview={isPreview}
+            activeTrigger={activeTrigger}
+            onTriggerClick={handleTriggerClick}
+          />
 
-  const canNavigatePrev = useMemo(
-    () => navigateToPrevSegment(allEvents, currentView) !== null,
-    [currentView]
-  );
+          {/* Right Column - Right Panel (60-65% on desktop, full width on mobile) */}
+          {/* Epic 3: Displays trigger content (story/game/related) */}
+          {/* Epic 6: Displays defense quiz when event is attacked */}
+          <RightPanel
+            event={displayEvent || null}
+            activeTrigger={activeTrigger}
+            onRelatedEventClick={handleRelatedEventClick}
+            onDefenseComplete={handleDefenseComplete}
+          />
+        </div>
 
-  // Determine which event to display in CardPanel
-  // Selected event takes priority over hovered event
-  const displayEventId = selectedEventId || hoveredEventId;
-  const displayEvent = displayEventId
-    ? allEvents.find(e => e.id === displayEventId) || null
-    : null;
-  const isPreview = hoveredEventId !== null && selectedEventId === null;
-
-  return (
-    <div className="h-screen w-full overflow-hidden bg-background">
-      {/* Header - Story 1.1 - Fixed at top, 10vh height */}
-      <Header />
-
-      {/* Content Area - Story 1.2 - Two columns on desktop, stacked on mobile */}
-      {/* Account for fixed header (10vh) and footer (18vh) - leaves ~72vh for content */}
-      <div className="fixed top-[10vh] left-0 right-0 bottom-[18vh] flex flex-col lg:flex-row overflow-hidden">
-        {/* Left Column - Card Panel (35-40% on desktop, full width on mobile) */}
-        {/* Epic 2: Displays selected/hovered event from timeline */}
-        {/* Epic 3: Shows trigger buttons when event is selected (not preview) */}
-        <CardPanel
-          event={displayEvent || null}
-          isPreview={isPreview}
-          activeTrigger={activeTrigger}
-          onTriggerClick={handleTriggerClick}
-        />
-
-        {/* Right Column - Right Panel (60-65% on desktop, full width on mobile) */}
-        {/* Epic 3: Displays trigger content (story/game/related) */}
-        <RightPanel
-          event={displayEvent || null}
-          activeTrigger={activeTrigger}
-          onRelatedEventClick={handleRelatedEventClick}
+        {/* Footer - Story 1.3 - Fixed at bottom, 18vh height */}
+        {/* Epic 2: Contains TimelineArc component */}
+        {/* Epic 5: Enhanced with event-driven segmentation and navigation */}
+        <Footer
+          events={displayEvents}
+          segments={currentSegments}
+          viewState={currentView}
+          canNavigateBack={canNavigateBack}
+          canNavigatePrev={canNavigatePrev}
+          canNavigateNext={canNavigateNext}
+          selectedEventId={selectedEventId}
+          onEventHover={handleEventHover}
+          onEventSelect={handleEventSelect}
+          onSegmentClick={handleSegmentClick}
+          onBackClick={handleBackClick}
+          onPrevSegment={handlePrevSegment}
+          onNextSegment={handleNextSegment}
         />
       </div>
-
-      {/* Footer - Story 1.3 - Fixed at bottom, 18vh height */}
-      {/* Epic 2: Contains TimelineArc component */}
-      {/* Epic 5: Enhanced with event-driven segmentation and navigation */}
-      <Footer
-        events={displayEvents}
-        segments={currentSegments}
-        viewState={currentView}
-        canNavigateBack={canNavigateBack}
-        canNavigatePrev={canNavigatePrev}
-        canNavigateNext={canNavigateNext}
-        selectedEventId={selectedEventId}
-        onEventHover={handleEventHover}
-        onEventSelect={handleEventSelect}
-        onSegmentClick={handleSegmentClick}
-        onBackClick={handleBackClick}
-        onPrevSegment={handlePrevSegment}
-        onNextSegment={handleNextSegment}
-      />
-    </div>
-  );
-}
+    );
+  }
