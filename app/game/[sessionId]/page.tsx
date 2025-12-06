@@ -76,6 +76,57 @@ export default function GamePage({ params }: GamePageProps) {
   const canNavigateBack = viewHistory.length > 0;
 
   /**
+   * Calculate parent context information for display
+   * Shows where the current view sits within the overall timeline
+   */
+  const parentContext = useMemo(() => {
+    if (viewHistory.length === 0) {
+      // At top level - no parent
+      return null;
+    }
+
+    const currentEvent = displayEvents[0];
+
+    if (!currentEvent || !currentEvent.parentEventId) {
+      return null;
+    }
+
+    // Find the parent event (the segment start)
+    const parentEvent = allEvents.find(e => e.id === currentEvent.parentEventId);
+    if (!parentEvent) return null;
+
+    // Find all siblings of the parent event (to determine segment end)
+    const parentSiblings = allEvents
+      .filter(e => e.parentEventId === parentEvent.parentEventId && e.hierarchyLevel === parentEvent.hierarchyLevel)
+      .sort((a, b) => a.year - b.year);
+
+    // Find next sibling after parent (this is the segment end boundary)
+    const parentIndex = parentSiblings.findIndex(e => e.id === parentEvent.id);
+    const nextParentSibling = parentIndex < parentSiblings.length - 1 ? parentSiblings[parentIndex + 1] : null;
+
+    // Segment boundaries: from parent event to next parent sibling
+    const parentStartYear = parentEvent.year;
+    const parentEndYear = nextParentSibling ? nextParentSibling.year : parentEvent.year + 1000;
+
+    // Find all siblings (children of the same parent)
+    const siblings = allEvents
+      .filter(e => e.parentEventId === currentEvent.parentEventId)
+      .sort((a, b) => a.year - b.year);
+
+    // Find current position among siblings
+    const currentIndex = siblings.findIndex(e => e.id === currentEvent.id);
+
+    return {
+      parentEvent,
+      parentStartYear,
+      parentEndYear,
+      currentSegmentIndex: currentIndex + 1,
+      totalSegments: siblings.length,
+      hierarchyLevel: currentEvent.hierarchyLevel,
+    };
+  }, [viewHistory, displayEvents, allEvents]);
+
+  /**
    * Handle event hover from timeline
    * Story 2.3: Show preview in CardPanel on hover (desktop only)
    */
@@ -128,8 +179,8 @@ export default function GamePage({ params }: GamePageProps) {
       // Save current view to history
       setViewHistory((prev) => [...prev, currentView]);
 
-      // Drill down into segment
-      const newView = drillDownSegment(segment, currentView.visibleEventIds);
+      // Drill down into segment - shows only child events
+      const newView = drillDownSegment(segment);
       setCurrentView(newView);
     },
     [currentSegments, currentView]
@@ -234,6 +285,7 @@ export default function GamePage({ params }: GamePageProps) {
         events={displayEvents}
         segments={currentSegments}
         viewState={currentView}
+        parentContext={parentContext}
         canNavigateBack={canNavigateBack}
         canNavigatePrev={canNavigatePrev}
         canNavigateNext={canNavigateNext}

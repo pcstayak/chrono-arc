@@ -133,6 +133,7 @@ export default function TimelineArc({
   /**
    * Calculate weighted t values for events
    * Uses event weights to distribute visual space
+   * Weight represents the space AFTER each event
    */
   const eventToWeightedT = useMemo((): Map<string, number> => {
     const tMap = new Map<string, number>();
@@ -142,15 +143,27 @@ export default function TimelineArc({
     // Sort events by year
     const sortedEvents = [...events].sort((a, b) => a.year - b.year);
 
-    // Calculate cumulative weights
-    const totalWeight = sortedEvents.reduce((sum, e) => sum + e.weight, 0);
+    // Single event: place at t=0 (will span full arc)
+    if (sortedEvents.length === 1) {
+      tMap.set(sortedEvents[0].id, 0);
+      return tMap;
+    }
+
+    // Calculate total weight (sum of all weights EXCEPT the last event)
+    // The last event has no segment after it, so its weight doesn't affect positioning
+    const totalWeight = sortedEvents.slice(0, -1).reduce((sum, e) => sum + e.weight, 0);
 
     let cumulativeWeight = 0;
-    sortedEvents.forEach((event) => {
-      // Map cumulative weight to t value (0 to 1)
-      const t = totalWeight > 0 ? cumulativeWeight / totalWeight : 0;
-      tMap.set(event.id, t);
-      cumulativeWeight += event.weight;
+    sortedEvents.forEach((event, index) => {
+      if (index === sortedEvents.length - 1) {
+        // Last event: always at t=1 (end of arc)
+        tMap.set(event.id, 1);
+      } else {
+        // Other events: positioned by cumulative weight
+        const t = totalWeight > 0 ? cumulativeWeight / totalWeight : 0;
+        tMap.set(event.id, t);
+        cumulativeWeight += event.weight;
+      }
     });
 
     return tMap;
@@ -297,7 +310,7 @@ export default function TimelineArc({
           d={path}
           stroke={isHovered ? "#f97316" : section.color}
           strokeWidth={strokeWidth}
-          strokeLinecap="round"
+          strokeLinecap="butt"
           fill="none"
           className="transition-colors duration-200"
           style={{
@@ -428,7 +441,7 @@ export default function TimelineArc({
           stroke="#4b5563"
           strokeWidth={dimensions.width < 768 ? 2 : 3}
           fill="none"
-          strokeLinecap="round"
+          strokeLinecap="butt"
           opacity={0.3}
         />
 

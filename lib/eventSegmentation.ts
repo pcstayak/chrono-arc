@@ -69,6 +69,9 @@ export function calculateSegments(
 
   if (visibleEvents.length === 0) return [];
 
+  // Determine the hierarchy level of visible events
+  const currentLevel = visibleEvents[0].hierarchyLevel;
+
   const segments: DynamicSegment[] = [];
 
   // Create segments between consecutive visible events (exclude last segment if no end event)
@@ -80,9 +83,13 @@ export function calculateSegments(
     const segmentEndYear = endEvent.year;
 
     // Find hidden events in this segment
-    // Include start event, exclude end event
+    // Only include DIRECT CHILDREN of the start event (next hierarchy level)
     const hiddenEvents = allEvents.filter(e => {
       if (visibleEventIds.has(e.id)) return false;
+      // Only include events at the next hierarchy level
+      if (e.hierarchyLevel !== currentLevel + 1) return false;
+      // Only include children of the start event
+      if (e.parentEventId !== startEvent.id) return false;
       return e.year > segmentStartYear && e.year < segmentEndYear;
     });
 
@@ -196,19 +203,33 @@ export function getSegmentColorStops(stateCounts: {
 
 /**
  * Drill down into a segment
- * Returns new view state with segment's hidden events now visible
+ * Returns new view state showing ONLY the segment's child events
+ * The arc zooms to show from first child to last child
  */
 export function drillDownSegment(
-  segment: DynamicSegment,
-  currentVisibleIds: Set<string>
+  segment: DynamicSegment
 ): ViewState {
-  // Make all hidden events in this segment visible
-  const newVisibleIds = new Set(currentVisibleIds);
+  // Show ONLY the hidden events (direct children) - clear parent events
+  const newVisibleIds = new Set<string>();
   segment.hiddenEvents.forEach(e => newVisibleIds.add(e.id));
 
+  // If no hidden events, shouldn't happen (segment wouldn't be clickable)
+  if (segment.hiddenEvents.length === 0) {
+    return {
+      minYear: segment.startYear,
+      maxYear: segment.endYear,
+      visibleEventIds: newVisibleIds,
+    };
+  }
+
+  // Zoom arc to show from first child to last child
+  const sortedChildren = [...segment.hiddenEvents].sort((a, b) => a.year - b.year);
+  const minYear = sortedChildren[0].year;
+  const maxYear = sortedChildren[sortedChildren.length - 1].year;
+
   return {
-    minYear: segment.startYear,
-    maxYear: segment.endYear,
+    minYear,
+    maxYear,
     visibleEventIds: newVisibleIds,
   };
 }
