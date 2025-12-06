@@ -10,7 +10,7 @@
 
 "use client";
 
-import { use, useState, useCallback, useMemo } from "react";
+import { use, useState, useCallback, useMemo, useEffect } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import CardPanel from "@/components/CardPanel";
@@ -20,17 +20,15 @@ import { allHierarchicalEvents } from "@/lib/hierarchicalEvents";
 import { convertAllEvents } from "@/lib/eventAdapter";
 import type { TriggerType } from "@/types";
 import {
+  getInitialViewState,
   calculateSegments,
   drillDownSegment,
-  getInitialViewState,
   navigateToNextSegment,
   navigateToPrevSegment,
-  type DynamicSegment,
   type ViewState,
+  type DynamicSegment,
 } from "@/lib/eventSegmentation";
-
-// Convert hierarchical events to timeline events
-const allEvents = convertAllEvents(allHierarchicalEvents);
+import { handleDefenseOutcome } from "@/lib/eventStateManager";
 
 interface GamePageProps {
   params: Promise<{ sessionId: string }>;
@@ -39,6 +37,9 @@ interface GamePageProps {
 export default function GamePage({ params }: GamePageProps) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { sessionId } = use(params);
+
+  // Convert hierarchical events to timeline events
+  const allEvents = useMemo(() => convertAllEvents(allHierarchicalEvents), []);
 
   // Epic 2: State management for timeline arc navigation
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
@@ -59,7 +60,7 @@ export default function GamePage({ params }: GamePageProps) {
    */
   const currentSegments = useMemo((): DynamicSegment[] => {
     return calculateSegments(allEvents, currentView.visibleEventIds);
-  }, [currentView.visibleEventIds]);
+  }, [allEvents, currentView.visibleEventIds]);
 
   /**
    * Epic 5: Get visible events to display on the arc
@@ -68,7 +69,7 @@ export default function GamePage({ params }: GamePageProps) {
     return allEvents.filter((event) =>
       currentView.visibleEventIds.has(event.id)
     );
-  }, [currentView.visibleEventIds]);
+  }, [allEvents, currentView.visibleEventIds]);
 
   /**
    * Epic 5: Check if we can navigate back
@@ -162,6 +163,29 @@ export default function GamePage({ params }: GamePageProps) {
     setActiveTrigger(null); // Clear trigger when navigating to related event
   }, []);
 
+  // Epic 6 Story 6.4: State to force re-render when event states change
+  const [, setStateUpdateTrigger] = useState(0);
+
+  /**
+   * Epic 6 Story 6.4: Handle defense completion
+   * Update event state based on defense outcome
+   */
+  const handleDefenseComplete = useCallback((eventId: string, success: boolean) => {
+    console.log(`Defense ${success ? "succeeded" : "failed"} for event ${eventId}`);
+
+    // Update the event state
+    handleDefenseOutcome(eventId, success);
+
+    // Force re-render to reflect state changes
+    // In production, this would be handled by a state management library (Redux, Zustand, etc.)
+    setStateUpdateTrigger((prev) => prev + 1);
+
+    // Clear the active trigger after defense completes
+    setTimeout(() => {
+      setActiveTrigger(null);
+    }, 3500);
+  }, []);
+
   /**
    * Epic 5 Story 5.1: Handle segment click (drill-down)
    * Zooms the arc to show the segment's date range and reveals hidden events
@@ -215,7 +239,7 @@ export default function GamePage({ params }: GamePageProps) {
       setSelectedEventId(null);
       setActiveTrigger(null);
     }
-  }, [currentView]);
+  }, [allEvents, currentView]);
 
   /**
    * Handle previous segment navigation
@@ -228,19 +252,19 @@ export default function GamePage({ params }: GamePageProps) {
       setSelectedEventId(null);
       setActiveTrigger(null);
     }
-  }, [currentView]);
+  }, [allEvents, currentView]);
 
   /**
    * Check if we can navigate to next/prev segments
    */
   const canNavigateNext = useMemo(
     () => navigateToNextSegment(allEvents, currentView) !== null,
-    [currentView]
+    [allEvents, currentView]
   );
 
   const canNavigatePrev = useMemo(
     () => navigateToPrevSegment(allEvents, currentView) !== null,
-    [currentView]
+    [allEvents, currentView]
   );
 
   // Determine which event to display in CardPanel
@@ -250,6 +274,13 @@ export default function GamePage({ params }: GamePageProps) {
     ? allEvents.find(e => e.id === displayEventId) || null
     : null;
   const isPreview = hoveredEventId !== null && selectedEventId === null;
+
+  // Epic 6 Story 6.2: Auto-switch to Game tab when event is attacked
+  useEffect(() => {
+    if (displayEvent?.state === "attacked" && activeTrigger !== "game") {
+      setActiveTrigger("game");
+    }
+  }, [displayEvent, activeTrigger]);
 
   return (
     <div className="h-screen w-full overflow-hidden bg-background">
@@ -271,10 +302,12 @@ export default function GamePage({ params }: GamePageProps) {
 
         {/* Right Column - Right Panel (60-65% on desktop, full width on mobile) */}
         {/* Epic 3: Displays trigger content (story/game/related) */}
+        {/* Epic 6: Displays defense quiz when event is attacked */}
         <RightPanel
           event={displayEvent || null}
           activeTrigger={activeTrigger}
           onRelatedEventClick={handleRelatedEventClick}
+          onDefenseComplete={handleDefenseComplete}
         />
       </div>
 
