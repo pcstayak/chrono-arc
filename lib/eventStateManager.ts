@@ -29,20 +29,17 @@ export function updateEventState(eventId: string, newState: TimelineEventState):
 
 /**
  * Handle defense outcome
- * - If successful: return event to "safe" state
- * - If failed: update to "corrupted" state (represented as "attacked" for now)
+ * Story 6.14: Updated to use "defended" and "corrupted" states
+ * - If successful: update to "defended" state (green indicator)
+ * - If failed: update to "corrupted" state
  */
 export function handleDefenseOutcome(eventId: string, success: boolean): void {
   if (success) {
-    // Defense successful - return to safe state
-    updateEventState(eventId, "safe");
+    // Defense successful - mark as defended (Story 6.14)
+    updateEventState(eventId, "defended");
   } else {
-    // Defense failed - event remains in attacked/corrupted state
-    // In a full implementation, we might have a separate "corrupted" state
-    // For now, we keep it as "attacked" or could set to "threatened"
-    console.log(`Event ${eventId} defense failed - remains corrupted`);
-    // Keep current state or update to a different failure state
-    // updateEventState(eventId, "attacked"); // Already attacked
+    // Defense failed - mark as corrupted (Story 6.14)
+    updateEventState(eventId, "corrupted");
   }
 }
 

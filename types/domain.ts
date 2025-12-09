@@ -111,10 +111,21 @@ export interface RelatedItem {
 export type TriggerType = "story" | "game" | "related";
 
 /**
+ * Epic 6: Mini-game type identifiers (Story 6.13)
+ */
+export type MiniGameType =
+  | "sequence"
+  | "fact_match"
+  | "anomaly"
+  | "classification"
+  | "cause_effect"
+  | "quiz";
+
+/**
  * Mini-game configuration for an event
  */
 export interface MiniGameData {
-  type: "placement" | "quiz" | "sequence";
+  type: MiniGameType;
   config: Record<string, unknown>;
 }
 
@@ -178,9 +189,10 @@ export type EventTag =
 export type EventState = "new" | "safe" | "danger" | "attack";
 
 /**
- * Epic 5: Timeline event display state for UI
+ * Epic 5 & Epic 6: Timeline event display state for UI
+ * Story 6.14: Added "defended" and "corrupted" states
  */
-export type TimelineEventState = "safe" | "threatened" | "attacked";
+export type TimelineEventState = "safe" | "threatened" | "attacked" | "defended" | "corrupted";
 
 /**
  * Epic 5: Timeline segment for hierarchical navigation
@@ -235,4 +247,23 @@ export interface PlaceEventData {
   eventId: string;
   position: number;
   playerId: string;
+}
+
+/**
+ * Epic 6: Defense history record (Story 6.13)
+ */
+export interface DefenseRecord {
+  eventId: string;
+  miniGameType: MiniGameType;
+  success: boolean;
+  timestamp: Date;
+}
+
+/**
+ * Epic 6: Player progress tracking (Story 6.13)
+ */
+export interface PlayerProgress {
+  playerId: string;
+  recentMiniGameTypes: MiniGameType[]; // Last 5 types encountered
+  defenseHistory: DefenseRecord[];
 }
