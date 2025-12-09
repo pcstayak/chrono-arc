@@ -209,7 +209,8 @@ export default function TimelineArc({
   }, [events, getBezierPoint, eventToWeightedT]);
 
   /**
-   * Epic 5 Story 5.3: Get dot color based on event state
+   * Epic 5 Story 5.3 & Epic 6 Story 6.14: Get dot color based on event state
+   * Story 6.14: Added "defended" and "corrupted" states
    */
   const getDotColor = (event: TimelineEvent, isSelected: boolean, isHovered: boolean): string => {
     if (isSelected) {
@@ -217,10 +218,14 @@ export default function TimelineArc({
       switch (event.state) {
         case "safe":
           return "#3b82f6"; // Bright blue
+        case "defended":
+          return "#10B981"; // Bright emerald green (Story 6.14)
         case "threatened":
           return "#f97316"; // Bright orange
         case "attacked":
           return "#ef4444"; // Bright red
+        case "corrupted":
+          return "#991B1B"; // Dark red
       }
     }
 
@@ -229,10 +234,14 @@ export default function TimelineArc({
       switch (event.state) {
         case "safe":
           return "#60a5fa"; // Medium blue
+        case "defended":
+          return "#34D399"; // Medium emerald green (Story 6.14)
         case "threatened":
           return "#fb923c"; // Medium orange
         case "attacked":
           return "#f87171"; // Medium red
+        case "corrupted":
+          return "#DC2626"; // Medium dark red
       }
     }
 
@@ -240,10 +249,14 @@ export default function TimelineArc({
     switch (event.state) {
       case "safe":
         return "#93c5fd"; // Light blue
+      case "defended":
+        return "#22C55E"; // Medium green - distinct from safe (Story 6.14)
       case "threatened":
         return "#fdba74"; // Light orange
       case "attacked":
         return "#fca5a5"; // Light red
+      case "corrupted":
+        return "#6B7280"; // Gray
     }
   };
 

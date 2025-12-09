@@ -1,0 +1,469 @@
+/**
+ * Mini-Game Type Selection Logic
+ * Epic 6: Story 6.13 (BA-US-minigame-type-selection-logic)
+ *
+ * Intelligently selects the most appropriate mini-game type for each attacked event
+ * based on event characteristics, difficulty, and player history.
+ */
+
+import type { TimelineEvent } from "@/lib/sampleEvents";
+import type { MiniGameType, PlayerProgress } from "@/types";
+
+/**
+ * Suitability score for each mini-game type (0.0 to 1.0)
+ */
+export interface SuitabilityScores {
+  sequence: number;
+  fact_match: number;
+  anomaly: number;
+  classification: number;
+  cause_effect: number;
+  quiz: number;
+}
+
+/**
+ * Selection result with chosen type and rationale
+ */
+export interface MiniGameSelection {
+  selectedType: MiniGameType;
+  confidenceScore: number;
+  fallbackType: MiniGameType;
+  rationale: string;
+}
+
+/**
+ * Calculate suitability score for Chronological Sequence Puzzle
+ * Suitable for events with clear phases/stages (wars, expeditions, inventions with development timeline)
+ */
+function calculateSequenceSuitability(event: TimelineEvent): number {
+  let score = 0;
+
+  // Check for story content with multiple paragraphs
+  if (event.content.triggers?.story?.content) {
+    const paragraphs = event.content.triggers.story.content.split('\n\n').filter(p => p.trim());
+    if (paragraphs.length >= 3) score += 0.3;
+  }
+
+  // Check tags for sequential events
+  const sequentialTags = ["war", "exploration", "innovation"];
+  const hasSequentialTag = event.tags.some(tag => sequentialTags.includes(tag));
+  if (hasSequentialTag) score += 0.4;
+
+  // Check for multiple fun facts (indicates phases/stages)
+  if (event.content.funFacts && event.content.funFacts.length >= 3) {
+    score += 0.2;
+  }
+
+  // Drill-down events often have phases
+  if (event.hierarchyLevel > 0) score += 0.1;
+
+  return Math.min(score, 1.0);
+}
+
+/**
+ * Calculate suitability score for Fact Matching Mini-Game
+ * Suitable for events with specific names, dates, locations, or technical terms
+ */
+function calculateFactMatchSuitability(event: TimelineEvent): number {
+  let score = 0;
+
+  // Has specific year
+  if (event.year !== 0) score += 0.2;
+
+  // Title likely has proper nouns (capital letters beyond first word)
+  const titleWords = event.title.split(' ');
+  const hasProperNouns = titleWords.slice(1).some(word => /^[A-Z]/.test(word));
+  if (hasProperNouns) score += 0.2;
+
+  // Has technical/specific terms in description
+  const technicalIndicators = ['invented', 'discovered', 'built', 'created', 'developed'];
+  const hasSpecificTerms = technicalIndicators.some(term =>
+    event.description.toLowerCase().includes(term)
+  );
+  if (hasSpecificTerms) score += 0.3;
+
+  // Multiple fun facts with specific details
+  if (event.content.funFacts && event.content.funFacts.length >= 2) {
+    score += 0.2;
+  }
+
+  // Innovation/invention tags
+  const factTags = ["invention", "innovation", "science", "discovery"];
+  const hasFactTag = event.tags.some(tag => factTags.includes(tag));
+  if (hasFactTag) score += 0.1;
+
+  return Math.min(score, 1.0);
+}
+
+/**
+ * Calculate suitability score for Spot the Anomaly Mini-Game
+ * Suitable for events with visual descriptions or detailed contextual content
+ */
+function calculateAnomalySuitability(event: TimelineEvent): number {
+  let score = 0;
+
+  // Has visual description in story
+  if (event.content.triggers?.story?.content) {
+    const storyContent = event.content.triggers.story.content;
+    const visualKeywords = ['imagine', 'picture', 'see', 'look', 'scene', 'view'];
+    const hasVisualDesc = visualKeywords.some(keyword =>
+      storyContent.toLowerCase().includes(keyword)
+    );
+    if (hasVisualDesc) score += 0.5;
+  }
+
+  // Has specific era (not too broad)
+  const specificEras = ["medieval", "renaissance", "industrial"];
+  if (specificEras.includes(event.era)) score += 0.2;
+
+  // Has detailed contextual content
+  if (event.content.story && event.content.story.length > 200) {
+    score += 0.2;
+  }
+
+  // Culture/art tags
+  const contextualTags = ["culture", "art", "innovation"];
+  const hasContextTag = event.tags.some(tag => contextualTags.includes(tag));
+  if (hasContextTag) score += 0.1;
+
+  return Math.min(score, 1.0);
+}
+
+/**
+ * Calculate suitability score for Metadata Classification Mini-Game
+ * Suitable for events with clear categorical relationships
+ */
+function calculateClassificationSuitability(event: TimelineEvent): number {
+  let score = 0;
+
+  // Has related events
+  if (event.content.triggers?.related?.items && event.content.triggers.related.items.length > 0) {
+    score += 0.4;
+  }
+
+  // Has multiple fun facts (good for sorting)
+  if (event.content.funFacts && event.content.funFacts.length >= 3) {
+    score += 0.3;
+  }
+
+  // Has multiple tags (indicates categorical richness)
+  if (event.tags.length > 1) score += 0.2;
+
+  // Top-level events good for categorization
+  if (event.hierarchyLevel === 0) score += 0.1;
+
+  return Math.min(score, 1.0);
+}
+
+/**
+ * Calculate suitability score for Cause-and-Effect Chain Builder
+ * Suitable for events with identifiable causes and effects
+ */
+function calculateCauseEffectSuitability(event: TimelineEvent): number {
+  let score = 0;
+
+  // Causal tags
+  const causalTags = ["war", "innovation", "discovery"];
+  const hasCausalTag = event.tags.some(tag => causalTags.includes(tag));
+  if (hasCausalTag) score += 0.4;
+
+  // Has related events (potential causes/effects)
+  if (event.content.triggers?.related?.items && event.content.triggers.related.items.length > 0) {
+    score += 0.3;
+  }
+
+  // Higher difficulty (complex causality)
+  if (event.difficulty >= 2) score += 0.2;
+
+  // Long story content (indicates complexity)
+  if (event.content.triggers?.story?.content) {
+    const paragraphs = event.content.triggers.story.content.split('\n\n').filter(p => p.trim());
+    if (paragraphs.length >= 2) score += 0.1;
+  }
+
+  return Math.min(score, 1.0);
+}
+
+/**
+ * Calculate base suitability scores for all mini-game types
+ */
+function calculateSuitabilityScores(event: TimelineEvent): SuitabilityScores {
+  return {
+    sequence: calculateSequenceSuitability(event),
+    fact_match: calculateFactMatchSuitability(event),
+    anomaly: calculateAnomalySuitability(event),
+    classification: calculateClassificationSuitability(event),
+    cause_effect: calculateCauseEffectSuitability(event),
+    quiz: 0.5, // Quiz is always suitable as fallback, but with lower priority
+  };
+}
+
+/**
+ * Apply variety bonus/penalty based on player history
+ */
+function applyVarietyModifiers(
+  scores: SuitabilityScores,
+  playerHistory: MiniGameType[]
+): SuitabilityScores {
+  const modifiedScores = { ...scores };
+  const lastTwo = playerHistory.slice(-2);
+
+  // Apply variety bonus (1.5x) for types not in last 2
+  // Apply variety penalty (0.3x) for types appearing 3+ times recently
+  Object.keys(modifiedScores).forEach((type) => {
+    const miniGameType = type as MiniGameType;
+
+    // Count occurrences in recent history
+    const recentCount = playerHistory.filter(t => t === miniGameType).length;
+
+    // Not in last 2 - variety bonus
+    if (!lastTwo.includes(miniGameType)) {
+      modifiedScores[miniGameType] *= 1.5;
+    }
+
+    // Appeared 3+ times - variety penalty
+    if (recentCount >= 3) {
+      modifiedScores[miniGameType] *= 0.3;
+    }
+  });
+
+  return modifiedScores;
+}
+
+/**
+ * Apply difficulty-based weighting
+ */
+function applyDifficultyModifiers(
+  scores: SuitabilityScores,
+  difficulty: number
+): SuitabilityScores {
+  const modifiedScores = { ...scores };
+
+  if (difficulty === 1) {
+    // Easy events - prefer simpler types
+    modifiedScores.quiz *= 1.2;
+    modifiedScores.fact_match *= 1.2;
+  } else if (difficulty === 3) {
+    // Hard events - prefer complex types
+    modifiedScores.sequence *= 1.2;
+    modifiedScores.cause_effect *= 1.2;
+    modifiedScores.classification *= 1.2;
+  }
+
+  return modifiedScores;
+}
+
+/**
+ * Select the mini-game type with highest score
+ */
+function selectHighestScore(scores: SuitabilityScores): {
+  type: MiniGameType;
+  score: number;
+} {
+  let maxType: MiniGameType = "quiz";
+  let maxScore = 0;
+
+  Object.entries(scores).forEach(([type, score]) => {
+    if (score > maxScore) {
+      maxScore = score;
+      maxType = type as MiniGameType;
+    }
+  });
+
+  return { type: maxType, score: maxScore };
+}
+
+/**
+/**
+ * Validate that event has sufficient content for selected mini-game type
+ * Returns true if content is sufficient, false if should fall back
+ */
+function validateContentFor(type: MiniGameType, event: TimelineEvent): boolean {
+  switch (type) {
+    case "sequence":
+      // Need multiple phases/facts from funFacts or description content
+      const hasFunFacts = (event.content.funFacts?.length ?? 0) >= 3;
+      const hasStoryParagraphs = event.content.triggers?.story?.content
+        ? event.content.triggers.story.content.split('\n\n').filter(p => p.trim()).length >= 3
+        : false;
+      return hasFunFacts || hasStoryParagraphs || event.description.split(/[.!?]+/).filter(s => s.trim().length > 15).length >= 4;
+
+    case "fact_match":
+      // Need specific facts to extract - year and proper nouns
+      const hasYear = event.year !== 0 && Math.abs(event.year) > 1000;
+      const hasProperNouns = /[A-Z][a-z]+\s+[A-Z][a-z]+/.test(event.description);
+      const hasKeywords = event.description.split(/\s+/).filter(w => w.length > 3 && /^[A-Z]/.test(w)).length >= 2;
+      return hasYear && (hasProperNouns || hasKeywords || (event.content.funFacts?.length ?? 0) >= 2);
+
+    case "anomaly":
+      // Need detailed description - check story content or long description
+      const storyLength = event.content.triggers?.story?.content?.length ?? 0;
+      const descriptionLength = event.description.length;
+      return storyLength > 200 || descriptionLength > 150;
+
+    case "classification":
+      // Need multiple items to classify - funFacts, tags, or related events
+      const hasMultipleFacts = (event.content.funFacts?.length ?? 0) >= 3;
+      const hasMultipleTags = event.tags.length >= 2;
+      const hasRelated = (event.content.triggers?.related?.items?.length ?? 0) >= 2;
+      return hasMultipleFacts || (hasMultipleTags && hasMultipleFacts) || hasRelated;
+
+    case "cause_effect":
+      // Need related events or complex content
+      const hasRelatedItems = (event.content.triggers?.related?.items?.length ?? 0) >= 2;
+      const hasComplexStory = event.content.triggers?.story?.content
+        ? event.content.triggers.story.content.split('\n\n').filter(p => p.trim()).length >= 2
+        : false;
+      const hasMultipleFunFacts = (event.content.funFacts?.length ?? 0) >= 3;
+      return hasRelatedItems || hasComplexStory || hasMultipleFunFacts;
+
+    case "quiz":
+      // Quiz always has content (fallback)
+      return true;
+
+    default:
+      return false;
+  }
+}
+
+
+/**
+ * Main selection function
+ * Story 6.13: Intelligently select mini-game type based on event and player history
+ */
+export function selectMiniGameType(
+  event: TimelineEvent,
+  playerProgress?: PlayerProgress
+): MiniGameSelection {
+  const startTime = Date.now();
+
+  // Get player history (last 5 mini-games)
+  const playerHistory = playerProgress?.recentMiniGameTypes.slice(-5) ?? [];
+
+  // Step 1: Calculate base suitability scores
+  let scores = calculateSuitabilityScores(event);
+
+  // Step 2: Apply variety modifiers
+  scores = applyVarietyModifiers(scores, playerHistory);
+
+  // Step 3: Apply difficulty modifiers
+  scores = applyDifficultyModifiers(scores, event.difficulty);
+
+  // Step 4: Select highest score
+  let selection = selectHighestScore(scores);
+
+  // Step 5: Validate content availability
+  if (!validateContentFor(selection.type, event)) {
+    // Remove selected type and try next best
+    const remainingScores = { ...scores };
+    delete remainingScores[selection.type];
+    selection = selectHighestScore(remainingScores);
+
+    // If still invalid, fall back to quiz
+    if (!validateContentFor(selection.type, event)) {
+      selection = { type: "quiz", score: 1.0 };
+    }
+  }
+
+  const elapsedTime = Date.now() - startTime;
+
+  // Generate rationale
+  const rationale = generateRationale(selection.type, event, scores, playerHistory);
+
+  // Log for analytics
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`[MiniGameSelector] Selected ${selection.type} for "${event.title}" (${elapsedTime}ms)`);
+    console.log(`[MiniGameSelector] Scores:`, scores);
+    console.log(`[MiniGameSelector] Rationale: ${rationale}`);
+  }
+
+  return {
+    selectedType: selection.type,
+    confidenceScore: selection.score,
+    fallbackType: "quiz",
+    rationale,
+  };
+}
+
+/**
+ * Generate human-readable rationale for selection
+ */
+function generateRationale(
+  selectedType: MiniGameType,
+  event: TimelineEvent,
+  scores: SuitabilityScores,
+  playerHistory: MiniGameType[]
+): string {
+  const reasons: string[] = [];
+
+  // Primary reason based on type
+  switch (selectedType) {
+    case "sequence":
+      reasons.push("Event has clear sequential phases");
+      break;
+    case "fact_match":
+      reasons.push("Event has specific names, dates, and facts");
+      break;
+    case "anomaly":
+      reasons.push("Event has rich visual/contextual description");
+      break;
+    case "classification":
+      reasons.push("Event has multiple categorizable facts");
+      break;
+    case "cause_effect":
+      reasons.push("Event has clear causes and effects");
+      break;
+    case "quiz":
+      reasons.push("Quiz selected as universal fallback");
+      break;
+  }
+
+  // Variety consideration
+  if (playerHistory.length > 0 && !playerHistory.slice(-2).includes(selectedType)) {
+    reasons.push("provides variety from recent mini-games");
+  }
+
+  // Difficulty alignment
+  if (event.difficulty === 1 && (selectedType === "quiz" || selectedType === "fact_match")) {
+    reasons.push("appropriate for easy difficulty");
+  } else if (event.difficulty === 3 && ["sequence", "cause_effect", "classification"].includes(selectedType)) {
+    reasons.push("appropriate for hard difficulty");
+  }
+
+  return reasons.join(", ");
+}
+
+/**
+ * Update player progress after completing a mini-game
+ */
+export function updatePlayerProgress(
+  progress: PlayerProgress | undefined,
+  eventId: string,
+  miniGameType: MiniGameType,
+  success: boolean
+): PlayerProgress {
+  const updated: PlayerProgress = progress ?? {
+    playerId: "default",
+    recentMiniGameTypes: [],
+    defenseHistory: [],
+  };
+
+  // Add to recent mini-game types (keep last 5)
+  updated.recentMiniGameTypes = [
+    ...updated.recentMiniGameTypes,
+    miniGameType
+  ].slice(-5);
+
+  // Add to defense history
+  updated.defenseHistory = [
+    ...updated.defenseHistory,
+    {
+      eventId,
+      miniGameType,
+      success,
+      timestamp: new Date(),
+    },
+  ];
+
+  return updated;
+}

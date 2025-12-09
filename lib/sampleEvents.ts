@@ -28,7 +28,7 @@ export const sampleEvents: TimelineEvent[] = [
     tags: ["invention", "innovation"],
     difficulty: 1,
     arcPosition: 5,
-    state: "safe",
+    state: "attacked",
     segmentId: "seg-early-ancient",
     isKeyEvent: true,
     content: {
@@ -124,7 +124,7 @@ export const sampleEvents: TimelineEvent[] = [
     tags: ["invention", "discovery", "innovation"],
     difficulty: 2,
     arcPosition: 28,
-    state: "safe",
+    state: "attacked",
     segmentId: "seg-medieval",
     isKeyEvent: true,
     content: {
@@ -220,7 +220,7 @@ export const sampleEvents: TimelineEvent[] = [
     tags: ["invention", "discovery", "science"],
     difficulty: 2,
     arcPosition: 52,
-    state: "safe",
+    state: "attacked",
     segmentId: "seg-medieval",
     isKeyEvent: false,
     content: {
@@ -316,7 +316,7 @@ export const sampleEvents: TimelineEvent[] = [
     tags: ["invention", "innovation", "technology"],
     difficulty: 2,
     arcPosition: 73,
-    state: "safe",
+    state: "attacked",
     segmentId: "seg-industrial",
     isKeyEvent: true,
     content: {

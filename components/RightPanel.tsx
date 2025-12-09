@@ -8,11 +8,10 @@
 
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useCallback } from "react";
 import type { TimelineEvent } from "@/lib/sampleEvents";
 import type { TriggerType } from "@/types";
-import DefenseQuiz, { type QuizQuestion } from "./DefenseQuiz";
-import { generateQuizQuestions } from "@/lib/quizGenerator";
+import MiniGameContainer from "./MiniGameContainer";
 
 interface RightPanelProps {
   event: TimelineEvent | null;
@@ -27,54 +26,14 @@ export default function RightPanel({
   onRelatedEventClick,
   onDefenseComplete,
 }: RightPanelProps) {
-  // Epic 6 Story 6.3: Quiz state management
-  const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[]>([]);
-  const [quizOutcome, setQuizOutcome] = useState<"success" | "failure" | null>(null);
-  const [currentEventId, setCurrentEventId] = useState<string | null>(null);
-
-  // Generate quiz questions when event enters attacked state (client-side only)
-  // This effect ensures questions are generated after mount to avoid hydration mismatches
-  useEffect(() => {
-    if (event && event.state === "attacked" && event.id !== currentEventId) {
-      // Generate new questions only on the client side
-      const questions = generateQuizQuestions(event);
-      setQuizQuestions(questions);
-      setCurrentEventId(event.id);
-    } else if (!event || event.state !== "attacked") {
-      // Clear questions when event is no longer attacked or changes
-      if (quizQuestions.length > 0 && currentEventId !== event?.id) {
-        setQuizQuestions([]);
-        setCurrentEventId(null);
+  // Epic 6 Story 6.4: Handle defense completion
+  const handleDefenseCompleteInternal = useCallback(
+    (eventId: string, success: boolean) => {
+      if (onDefenseComplete) {
+        onDefenseComplete(eventId, success);
       }
-    }
-  }, [event, currentEventId, quizQuestions.length]);
-
-  // Handle answer submission (Story 6.4)
-  const handleAnswerSubmit = useCallback(
-    (questionIndex: number, selectedIndex: number, isCorrect: boolean) => {
-      // This will be fully implemented in Story 6.4
-      console.log(`Question ${questionIndex}: ${isCorrect ? "Correct" : "Incorrect"}`);
     },
-    []
-  );
-
-  // Handle quiz completion (Story 6.4)
-  const handleQuizComplete = useCallback(
-    (success: boolean) => {
-      setQuizOutcome(success ? "success" : "failure");
-
-      // Notify parent component about defense outcome
-      if (event && onDefenseComplete) {
-        onDefenseComplete(event.id, success);
-      }
-
-      // Clear quiz state after showing outcome
-      setTimeout(() => {
-        setQuizQuestions([]);
-        setQuizOutcome(null);
-      }, 3000);
-    },
-    [event, onDefenseComplete]
+    [onDefenseComplete]
   );
   // No event selected or no trigger active - show empty state
   if (!event || !activeTrigger) {
@@ -232,89 +191,12 @@ export default function RightPanel({
     const eventState = (event as TimelineEvent).state;
 
     if (eventState === "attacked") {
-      // Epic 6 Story 6.3: Load defense mini-game (quiz)
-      // Questions are generated in useEffect to avoid hydration issues
-
-      // If questions haven't been generated yet, show loading state
-      if (quizQuestions.length === 0) {
-        return (
-          <div className="max-w-2xl mx-auto">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8 md:p-12 text-center">
-              <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-gray-600 dark:text-gray-400">Preparing defense questions...</p>
-            </div>
-          </div>
-        );
-      }
-
-      // Show outcome screen if quiz is complete
-      if (quizOutcome !== null) {
-        return (
-          <div className="max-w-2xl mx-auto">
-            <div
-              className={`bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8 md:p-12 text-center ${
-                quizOutcome === "success"
-                  ? "border-4 border-green-500"
-                  : "border-4 border-red-500"
-              }`}
-            >
-              <div className="mb-6">
-                {quizOutcome === "success" ? (
-                  <svg
-                    className="w-24 h-24 md:w-32 md:h-32 mx-auto text-green-500"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                ) : (
-                  <svg
-                    className="w-24 h-24 md:w-32 md:h-32 mx-auto text-red-500"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                )}
-              </div>
-
-              <h2
-                className={`text-2xl md:text-3xl font-bold mb-4 ${
-                  quizOutcome === "success" ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
-                }`}
-              >
-                {quizOutcome === "success" ? "Event Defended!" : "Event Lost"}
-              </h2>
-
-              <p className="text-base md:text-lg text-gray-600 dark:text-gray-400">
-                {quizOutcome === "success"
-                  ? `Great work! You successfully defended ${event.title} from corruption.`
-                  : `The time bandits corrupted ${event.title}. Better luck next time!`}
-              </p>
-            </div>
-          </div>
-        );
-      }
-
-      // Render the quiz game
+      // Epic 6 Story 6.3 (UPDATED) & Story 6.13: Load defense mini-game
+      // MiniGameContainer will select the appropriate mini-game type
       return (
-        <DefenseQuiz
+        <MiniGameContainer
           event={event as TimelineEvent}
-          questions={quizQuestions}
-          onAnswerSubmit={handleAnswerSubmit}
-          onQuizComplete={handleQuizComplete}
+          onDefenseComplete={handleDefenseCompleteInternal}
         />
       );
     }

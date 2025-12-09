@@ -25,6 +25,8 @@ export interface DynamicSegment {
     safe: number;
     threatened: number;
     attacked: number;
+    defended: number; // Story 6.14
+    corrupted: number; // Story 6.14
     total: number;
   };
   // Chronological color sections for rendering
@@ -44,12 +46,15 @@ export interface ViewState {
 
 /**
  * Get color for an event state
+ * Story 6.14: Added defended and corrupted states
  */
 function getStateColor(state: string): string {
   switch (state) {
     case 'safe': return '#4A90E2'; // blue
+    case 'defended': return '#22C55E'; // green (Story 6.14)
     case 'threatened': return '#F5A623'; // orange
     case 'attacked': return '#D0021B'; // red
+    case 'corrupted': return '#6B7280'; // gray (Story 6.14)
     default: return '#9ca3af'; // gray
   }
 }
@@ -90,13 +95,18 @@ export function calculateSegments(
     const allEventsInSegment = [startEvent, ...hiddenEvents].sort((a, b) => a.year - b.year);
 
     // Calculate state counts (including start event, excluding end event)
+    // Story 6.14: Added defended and corrupted states
     const stateCounts = allEventsInSegment.reduce(
       (acc, event) => {
-        acc[event.state]++;
+        if (event.state === 'safe' || event.state === 'threatened' ||
+            event.state === 'attacked' || event.state === 'defended' ||
+            event.state === 'corrupted') {
+          acc[event.state]++;
+        }
         acc.total++;
         return acc;
       },
-      { safe: 0, threatened: 0, attacked: 0, total: 0 }
+      { safe: 0, threatened: 0, attacked: 0, defended: 0, corrupted: 0, total: 0 }
     );
 
     // Determine segment color based on proportions
@@ -133,35 +143,45 @@ export function calculateSegments(
 /**
  * Get segment color based on state proportions
  * Returns array of color stops for gradient
+ * Story 6.14: Added defended and corrupted states
  */
 function getSegmentColor(stateCounts: {
   safe: number;
   threatened: number;
   attacked: number;
+  defended: number;
+  corrupted: number;
   total: number;
 }): string {
   if (stateCounts.total === 0) return '#9ca3af'; // gray
 
   // If all same state, return single color
   if (stateCounts.safe === stateCounts.total) return '#4A90E2'; // blue
+  if (stateCounts.defended === stateCounts.total) return '#22C55E'; // green
   if (stateCounts.threatened === stateCounts.total) return '#F5A623'; // orange
   if (stateCounts.attacked === stateCounts.total) return '#D0021B'; // red
+  if (stateCounts.corrupted === stateCounts.total) return '#6B7280'; // gray
 
   // Mixed states - return dominant color
-  // Priority: attacked > threatened > safe
+  // Priority: attacked > corrupted > threatened > defended > safe
   if (stateCounts.attacked > 0) return '#D0021B';
+  if (stateCounts.corrupted > 0) return '#6B7280';
   if (stateCounts.threatened > 0) return '#F5A623';
+  if (stateCounts.defended > 0) return '#22C55E';
   return '#4A90E2';
 }
 
 /**
  * Get color stops for gradient rendering
  * Returns proportional color sections
+ * Story 6.14: Added defended and corrupted states
  */
 export function getSegmentColorStops(stateCounts: {
   safe: number;
   threatened: number;
   attacked: number;
+  defended: number;
+  corrupted: number;
   total: number;
 }): Array<{ color: string; proportion: number }> {
   if (stateCounts.total === 0) {
@@ -177,6 +197,13 @@ export function getSegmentColorStops(stateCounts: {
     });
   }
 
+  if (stateCounts.defended > 0) {
+    stops.push({
+      color: '#22C55E',
+      proportion: stateCounts.defended / stateCounts.total,
+    });
+  }
+
   if (stateCounts.threatened > 0) {
     stops.push({
       color: '#F5A623',
@@ -188,6 +215,13 @@ export function getSegmentColorStops(stateCounts: {
     stops.push({
       color: '#D0021B',
       proportion: stateCounts.attacked / stateCounts.total,
+    });
+  }
+
+  if (stateCounts.corrupted > 0) {
+    stops.push({
+      color: '#6B7280',
+      proportion: stateCounts.corrupted / stateCounts.total,
     });
   }
 
